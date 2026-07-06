@@ -50,8 +50,27 @@ npx eas submit --platform ios  # 需要 Apple Developer Program 帳號（$99/年
 複製 `.env.example` 成 `.env`，填入 Firebase 專案設定（跟 Web repo 用同一個專案，
 數值可以直接對照 Web repo 的 `.env`，前綴從 `VITE_` 換成 `EXPO_PUBLIC_`）。
 
-## 目前進度
+## 目前進度（2026-07-06）
 
-見專案根目錄或跟維護者確認最新狀態。Phase 1 MVP（Email/密碼登入 + 底部 Tab 導覽殼 +
-聯絡人列表唯讀）已完成，尚未上真機用 Expo Go 實測（只驗證過 `tsc --noEmit` 型別檢查
-跟 `expo export` 能成功打包 1090 個模組，沒有 import 解析錯誤）。
+**Phase 0/1/2 已全部完成**（對照 iOS 開發計畫）：
+
+- Phase 0：專案骨架、依賴安裝、`src/domain`/`src/data`/`src/services` 複製、`src/platform` 實作
+- Phase 1 MVP：Email/密碼登入、底部 Tab 導覽殼、聯絡人列表
+- Phase 2：
+  1. 聯絡人 CRUD + 照片上傳
+  2. 互動紀錄、手動提醒、首頁摘要面板
+  3. 標籤管理、搜尋/排序
+  4. 全部 6 項 AI 功能（名片 OCR、建議話題、AI 問答、語音/文字快速記錄、文件匯入、
+     網路研究摘要）——**完全沿用既有 `geminiProxy` Cloud Function，沒有改動任何後端程式碼**
+  5. 設定頁（語言切換、AI 用量顯示、同步狀態、操作歷史、登出）
+
+**尚未做**（比照 Web repo 的暫緩範圍）：
+- Google 登入（需要原生 Google Sign-In SDK，見 `authRepository.ts` 的 TODO）
+- Excel 匯出（手機上應該改成分享而非下載，UX 決策待定，故意先跳過不是忘記）
+- 跟 Web repo 一樣暫緩三個月的 4 項：AI 額度後端執行、Google 聯絡人 API 匯入、照片搜尋、Stripe
+
+**驗證方式的限制**：每個功能都跑過 `tsc --noEmit`（型別檢查）跟 `npx expo export --platform ios`
+（Metro 真的把所有 import 打包過一次，能抓到 tsc 抓不到的 conditional exports 解析問題），
+但**完全沒有在真機上用 Expo Go 實際點過任何一個畫面**——開發環境沒有 Mac 也沒有連接實體
+裝置，Expo Go 連線本身也還在排查中（見對話紀錄的公司網路 AP isolation 問題）。上真機測試
+前，不應該假設任何互動流程（尤其是相機/錄音/檔案選取這幾個原生模組串接）已經驗證過。
