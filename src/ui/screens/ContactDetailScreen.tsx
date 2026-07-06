@@ -6,6 +6,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { ContactsStackParamList } from '@ui/navigation/ContactsStackParamList';
 import { ContactFormFields, type ContactFormValues } from '@ui/components/ContactFormFields';
 import { ContactInteractionsSection } from '@ui/components/ContactInteractionsSection';
+import { SuggestedTopicsSection } from '@ui/components/SuggestedTopicsSection';
 import { TagMultiSelect } from '@ui/components/TagMultiSelect';
 import { useContactsStore } from '@ui/store/contactsStore';
 import { useAuthStore } from '@ui/store/authStore';
@@ -194,6 +195,7 @@ export function ContactDetailScreen({ route, navigation }: Props) {
       </Button>
 
       <ContactInteractionsSection uid={uid} contactId={contactId} contactName={contact.name} />
+      <SuggestedTopicsSection contact={contact} />
     </ScrollView>
   );
 }
