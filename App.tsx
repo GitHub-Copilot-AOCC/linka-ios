@@ -19,7 +19,10 @@ import { AssistantChatScreen } from '@ui/screens/AssistantChatScreen';
 import { QuickCaptureScreen } from '@ui/screens/QuickCaptureScreen';
 import { DocumentImportScreen } from '@ui/screens/DocumentImportScreen';
 import { ImportContactsScreen } from '@ui/screens/ImportContactsScreen';
+import { SettingsScreen } from '@ui/screens/SettingsScreen';
+import { OperationLogScreen } from '@ui/screens/OperationLogScreen';
 import type { ContactsStackParamList } from '@ui/navigation/ContactsStackParamList';
+import type { SettingsStackParamList } from '@ui/navigation/SettingsStackParamList';
 
 // 對應 spec.md §4：手機版沿用 Web 版同一套 Material 3 token（見 Web repo src/ui/theme/theme.ts
 // 的 PRIMARY 色），react-native-paper 的 theme 物件結構跟 MUI 不同，這裡先用最小可行的顏色覆寫，
@@ -35,6 +38,7 @@ const theme = {
 
 const Tab = createBottomTabNavigator();
 const ContactsStack = createNativeStackNavigator<ContactsStackParamList>();
+const SettingsStack = createNativeStackNavigator<SettingsStackParamList>();
 
 /** 對應 Web 版的 /contacts、/contacts/:contactId 路由（見 spec.md §11.5）。 */
 function ContactsNavigator() {
@@ -53,6 +57,17 @@ function ContactsNavigator() {
   );
 }
 
+/** 對應 Web 版的 /settings 路由。 */
+function SettingsNavigator() {
+  const { t } = useTranslation();
+  return (
+    <SettingsStack.Navigator>
+      <SettingsStack.Screen name="SettingsMain" component={SettingsScreen} options={{ title: t('settings.title') }} />
+      <SettingsStack.Screen name="OperationLog" component={OperationLogScreen} options={{ title: t('operationLog.title') }} />
+    </SettingsStack.Navigator>
+  );
+}
+
 function MainTabs() {
   const { t } = useTranslation();
   return (
@@ -64,6 +79,11 @@ function MainTabs() {
         options={{ title: t('nav.contacts'), headerShown: false }}
       />
       <Tab.Screen name="Assistant" component={AssistantChatScreen} options={{ title: t('nav.assistant') }} />
+      <Tab.Screen
+        name="Settings"
+        component={SettingsNavigator}
+        options={{ title: t('nav.settings'), headerShown: false }}
+      />
     </Tab.Navigator>
   );
 }
