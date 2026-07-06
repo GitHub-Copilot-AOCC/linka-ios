@@ -17,30 +17,40 @@ workflows:
         script: npm ci
       - name: Generate native iOS project (Expo prebuild)
         script: npx expo prebuild --platform ios --no-install
+      - name: Install CocoaPods dependencies
+        script: |
+          cd ios && pod install
       - name: Detect generated Xcode workspace/scheme names
         script: |
-          # Windows 上跑不了 `expo prebuild --platform ios`（見對話紀錄），沒辦法在本機先確認
-          # Expo 產生的 .xcworkspace/scheme 實際命名，寧可讓 CI 動態偵測，不要猜一個可能是錯的
-          # 硬編碼值（例如照 app.json 的 name "Linka" 還是 slug "linka-ios" 命名，行為可能因
-          # Expo SDK 版本而異）。
+          # `expo prebuild` 只產生 .xcodeproj；.xcworkspace 是 pod install 才會建立
+          # （CocoaPods 把 Pods 專案跟 app 專案合併進同一個 workspace），所以這一步要放在
+          # pod install 之後，不能在它之前找。Windows 上跑不了 `expo prebuild --platform ios`
+          # （見對話紀錄），沒辦法在本機先確認 Expo 產生的實際命名，寧可讓 CI 動態偵測，
+          # 不要猜一個可能是錯的硬編碼值。
           WORKSPACE_PATH=$(find ios -maxdepth 1 -name "*.xcworkspace" | head -1)
           if [ -z "$WORKSPACE_PATH" ]; then
-            echo "找不到 .xcworkspace，prebuild 可能失敗，檢查上一步的 log"
+            echo "找不到 .xcworkspace，pod install 可能失敗，檢查上一步的 log"
             exit 1
           fi
           SCHEME_NAME=$(basename "$WORKSPACE_PATH" .xcworkspace)
           echo "偵測到 workspace: $WORKSPACE_PATH，scheme: $SCHEME_NAME"
           echo "XCODE_WORKSPACE=$WORKSPACE_PATH" >> $CM_ENV
           echo "XCODE_SCHEME=$SCHEME_NAME" >> $CM_ENV
-      - name: Install CocoaPods dependencies
-        script: |
-          cd ios && pod install
       - name: Set up code signing settings on Xcode project
         script: xcode-project use-profiles
-      - name: Increment build number
+      - name: Set build number
         script: |
-          cd ios
-          agvtool new-version -all $(($BUILD_NUMBER + 1))
+          # agvtool 需要專案的 Versioning System 設成 Apple Generic，expo prebuild 產生的
+          # 專案預設不是這個設定，直接呼叫 agvtool 大概率會失敗。改用 PlistBuddy 直接寫
+          # Info.plist，不依賴任何額外設定；第一次 build 還沒有任何 TestFlight 紀錄，
+          # 用 Codemagic 自帶的 $BUILD_NUMBER（每次 build 自動遞增）就夠。
+          INFOPLIST_PATH=$(find ios -maxdepth 2 -name "Info.plist" ! -path "*Pods*" | head -1)
+          if [ -z "$INFOPLIST_PATH" ]; then
+            echo "找不到 Info.plist，略過設定 build number（用 app.json 裡的預設值）"
+          else
+            /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" "$INFOPLIST_PATH"
+            echo "已把 $INFOPLIST_PATH 的 CFBundleVersion 設成 $BUILD_NUMBER"
+          fi
       - name: Build ipa for distribution
         script: |
           xcode-project build-ipa \
