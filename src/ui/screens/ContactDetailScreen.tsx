@@ -6,8 +6,10 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { ContactsStackParamList } from '@ui/navigation/ContactsStackParamList';
 import { ContactFormFields, type ContactFormValues } from '@ui/components/ContactFormFields';
 import { ContactInteractionsSection } from '@ui/components/ContactInteractionsSection';
+import { TagMultiSelect } from '@ui/components/TagMultiSelect';
 import { useContactsStore } from '@ui/store/contactsStore';
 import { useAuthStore } from '@ui/store/authStore';
+import { useTagsStore } from '@ui/store/tagsStore';
 import { MAX_PHOTOS_PER_CONTACT } from '@domain/contact';
 import type { ContactPhoto } from '@domain/contact';
 import { uploadContactPhoto, removeContactPhoto } from '@data/contactsRepository';
@@ -38,16 +40,23 @@ export function ContactDetailScreen({ route, navigation }: Props) {
   const remove = useContactsStore((s) => s.remove);
   const contact = contacts.find((c) => c.id === contactId);
 
+  const subscribeTags = useTagsStore((s) => s.subscribe);
   const [values, setValues] = useState<ContactFormValues | null>(contact ? toFormValues(contact) : null);
   const [reminderDate, setReminderDate] = useState(contact?.nextContactReminder ?? '');
+  const [tagIds, setTagIds] = useState<string[]>(contact?.tags ?? []);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
+    if (uid) return subscribeTags(uid);
+  }, [uid, subscribeTags]);
+
+  useEffect(() => {
     if (contact) {
       setValues(toFormValues(contact));
       setReminderDate(contact.nextContactReminder ?? '');
+      setTagIds(contact.tags ?? []);
     }
   }, [contact?.id]);
 
@@ -73,6 +82,7 @@ export function ContactDetailScreen({ route, navigation }: Props) {
       birthday: values!.birthday || undefined,
       notes: values!.notes || undefined,
       nextContactReminder: reminderDate || undefined,
+      tags: tagIds.length > 0 ? tagIds : undefined,
     });
     setSaving(false);
   }
@@ -152,6 +162,11 @@ export function ContactDetailScreen({ route, navigation }: Props) {
       </View>
 
       <ContactFormFields values={values} onChange={setValues} />
+
+      <Text variant="titleMedium" style={styles.sectionTitle}>
+        {t('editContact.tags')}
+      </Text>
+      <TagMultiSelect selectedIds={tagIds} onChange={setTagIds} />
 
       <Text variant="titleMedium" style={styles.sectionTitle}>
         {t('setReminder.title', { name: contact.name })}

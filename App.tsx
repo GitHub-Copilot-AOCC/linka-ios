@@ -13,6 +13,7 @@ import { DashboardScreen } from '@ui/screens/DashboardScreen';
 import { ContactsListScreen } from '@ui/screens/ContactsListScreen';
 import { ContactDetailScreen } from '@ui/screens/ContactDetailScreen';
 import { AddContactScreen } from '@ui/screens/AddContactScreen';
+import { TagsManagerScreen } from '@ui/screens/TagsManagerScreen';
 import type { ContactsStackParamList } from '@ui/navigation/ContactsStackParamList';
 
 // 對應 spec.md §4：手機版沿用 Web 版同一套 Material 3 token（見 Web repo src/ui/theme/theme.ts
@@ -38,6 +39,7 @@ function ContactsNavigator() {
       <ContactsStack.Screen name="ContactsList" component={ContactsListScreen} options={{ title: t('contacts.title') }} />
       <ContactsStack.Screen name="ContactDetail" component={ContactDetailScreen} options={{ title: t('editContact.title', { name: '' }) }} />
       <ContactsStack.Screen name="AddContact" component={AddContactScreen} options={{ title: t('contacts.addContact') }} />
+      <ContactsStack.Screen name="TagsManager" component={TagsManagerScreen} options={{ title: t('tags.title') }} />
     </ContactsStack.Navigator>
   );
 }
