@@ -16,6 +16,7 @@
     "expo-image-manipulator": "~57.0.2",
     "expo-image-picker": "~57.0.2",
     "expo-localization": "~57.0.0",
+    "expo-sharing": "~57.0.2",
     "expo-status-bar": "~57.0.0",
     "firebase": "^12.15.0",
     "i18next": "^26.3.4",
@@ -27,6 +28,7 @@
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "4.25.2",
     "react-native-vector-icons": "^10.3.0",
+    "xlsx": "^0.18.5",
     "zustand": "^5.0.14"
   },
   "devDependencies": {

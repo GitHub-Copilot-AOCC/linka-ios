@@ -38,7 +38,8 @@
           "cameraPermission": "Linka 需要使用相機，用於拍攝名片或聯絡人照片。"
         }
       ],
-      "expo-document-picker"
+      "expo-document-picker",
+      "expo-sharing"
     ]
   }
 }
