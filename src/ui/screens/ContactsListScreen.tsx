@@ -49,6 +49,7 @@ export function ContactsListScreen({ navigation }: Props) {
               onChangeText={setKeyword}
               style={styles.searchbar}
             />
+            <IconButton icon="camera-outline" onPress={() => navigation.navigate('BusinessCardScan')} />
             <IconButton icon="tag-outline" onPress={() => navigation.navigate('TagsManager')} />
           </View>
           <SegmentedButtons

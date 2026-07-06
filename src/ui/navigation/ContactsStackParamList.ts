@@ -3,4 +3,5 @@ export type ContactsStackParamList = {
   ContactDetail: { contactId: string };
   AddContact: undefined;
   TagsManager: undefined;
+  BusinessCardScan: undefined;
 };
