@@ -12,7 +12,7 @@ WebBrowser.maybeCompleteAuthSession();
  * Email/密碼登入 + Google 登入（見 spec.md §5.1）。Google 登入用 expo-auth-session 的
  * useIdTokenAuthRequest（見 authRepository.ts 的 signInWithGoogleIdToken 說明），需要在
  * .env 設定 EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID（Google Cloud Console 建立的 iOS 類型
- * OAuth Client ID，Bundle ID 對應 app.json 的 com.linka.app）。
+ * OAuth Client ID，Bundle ID 對應 app.json 的 com.linkaios.app）。
  *
  * 已知限制：這個 client id 綁定的是 app 自己的 URL scheme（app.json 的 "linka" scheme），
  * 在 Expo Go 裡執行時實際拿到的 redirect URI 是動態的 exp://，跟 Google Console 設定的不會

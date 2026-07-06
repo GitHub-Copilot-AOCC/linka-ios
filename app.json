@@ -9,7 +9,7 @@
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.linka.app"
+      "bundleIdentifier": "com.linkaios.app"
     },
     "android": {
       "adaptiveIcon": {

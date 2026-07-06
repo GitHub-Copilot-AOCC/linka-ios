@@ -8,7 +8,7 @@ workflows:
     environment:
       ios_signing:
         distribution_type: app_store
-        bundle_identifier: com.linka.app
+        bundle_identifier: com.linkaios.app
       node: 20.18.0
       groups:
         - linka_env
