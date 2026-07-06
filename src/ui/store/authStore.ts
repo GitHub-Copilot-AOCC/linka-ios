@@ -3,7 +3,7 @@ import type { User } from 'firebase/auth';
 import {
   registerWithEmail,
   signInWithEmail,
-  signInWithGoogle,
+  signInWithGoogleIdToken,
   signOut,
   resetPassword,
   subscribeAuthState,
@@ -20,7 +20,7 @@ interface AuthState {
   init: () => () => void;
   register: (email: string, password: string) => Promise<{ ok: boolean; errors?: Record<string, string> }>;
   login: (email: string, password: string) => Promise<{ ok: boolean; errors?: Record<string, string> }>;
-  loginWithGoogle: () => Promise<{ ok: boolean; error?: string }>;
+  loginWithGoogle: (idToken: string) => Promise<{ ok: boolean; error?: string }>;
   logout: () => Promise<void>;
   sendResetEmail: (email: string) => Promise<{ ok: boolean; error?: string }>;
 }
@@ -65,9 +65,9 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  loginWithGoogle: async () => {
+  loginWithGoogle: async (idToken) => {
     try {
-      await signInWithGoogle();
+      await signInWithGoogleIdToken(idToken);
       return { ok: true };
     } catch (err) {
       return { ok: false, error: (err as Error).message };

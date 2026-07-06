@@ -1,6 +1,8 @@
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  signInWithCredential,
+  GoogleAuthProvider,
   signOut as firebaseSignOut,
   sendPasswordResetEmail,
   onAuthStateChanged,
@@ -23,12 +25,15 @@ export async function signInWithEmail(email: string, password: string): Promise<
   return cred.user;
 }
 
-// Web 版用 signInWithPopup，這在 RN 沒有對應（沒有瀏覽器彈窗）。照 iOS 開發計畫，
-// Google 登入延後處理——之後要做時需要 `@react-native-google-signin/google-signin`
-// 取得原生 ID token，再用 `signInWithCredential(auth, GoogleAuthProvider.credential(idToken))`
-// 換成 Firebase User，跟這裡其他函式的介面（回傳 Promise<User>）保持一致即可，呼叫端不用改。
-export async function signInWithGoogle(): Promise<User> {
-  throw new Error('Google 登入尚未在 iOS 版實作（需要原生 Google Sign-In SDK），先用 Email/密碼登入');
+/**
+ * Web 版用 signInWithPopup（瀏覽器彈窗），RN 沒有對應 API。改用 `expo-auth-session` 的
+ * `useIdTokenAuthRequest` hook 取得 Google id token（見 LoginScreen.tsx），這裡只負責
+ * 拿到 id token 後換成 Firebase User，跟其他函式一樣回傳 `Promise<User>`，呼叫端不用改。
+ * 取得 id token 的流程是 hook（不能放在這個檔案，這層不能有 UI 依賴），故拆成兩步。
+ */
+export async function signInWithGoogleIdToken(idToken: string): Promise<User> {
+  const cred = await signInWithCredential(requireAuth(), GoogleAuthProvider.credential(idToken));
+  return cred.user;
 }
 
 export async function signOut(): Promise<void> {
