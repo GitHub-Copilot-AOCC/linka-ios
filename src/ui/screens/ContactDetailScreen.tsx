@@ -7,6 +7,7 @@ import type { ContactsStackParamList } from '@ui/navigation/ContactsStackParamLi
 import { ContactFormFields, type ContactFormValues } from '@ui/components/ContactFormFields';
 import { ContactInteractionsSection } from '@ui/components/ContactInteractionsSection';
 import { SuggestedTopicsSection } from '@ui/components/SuggestedTopicsSection';
+import { ContactResearchSection } from '@ui/components/ContactResearchSection';
 import { TagMultiSelect } from '@ui/components/TagMultiSelect';
 import { useContactsStore } from '@ui/store/contactsStore';
 import { useAuthStore } from '@ui/store/authStore';
@@ -196,6 +197,7 @@ export function ContactDetailScreen({ route, navigation }: Props) {
 
       <ContactInteractionsSection uid={uid} contactId={contactId} contactName={contact.name} />
       <SuggestedTopicsSection contact={contact} />
+      <ContactResearchSection uid={uid} contact={contact} />
     </ScrollView>
   );
 }

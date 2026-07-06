@@ -12,6 +12,7 @@ export interface PickedFile {
   uri: string;
   mimeType?: string;
   fileName?: string;
+  size?: number;
 }
 
 /** 選取或拍攝一張照片；使用者取消則回傳 null。`source: 'camera'` 對應 Web 版的 capture='environment'。 */
@@ -29,7 +30,7 @@ export async function pickImage(options: { source?: 'camera' | 'library' } = {})
 
   if (result.canceled || result.assets.length === 0) return null;
   const asset = result.assets[0];
-  return { uri: asset.uri, mimeType: asset.mimeType, fileName: asset.fileName ?? undefined };
+  return { uri: asset.uri, mimeType: asset.mimeType, fileName: asset.fileName ?? undefined, size: asset.fileSize };
 }
 
 /** 選取文件（PDF/docx/xlsx/csv/vcf）；使用者取消則回傳 null。 */
@@ -40,5 +41,5 @@ export async function pickDocument(options: { mimeTypes?: string[] } = {}): Prom
   });
   if (result.canceled || result.assets.length === 0) return null;
   const asset = result.assets[0];
-  return { uri: asset.uri, mimeType: asset.mimeType, fileName: asset.name };
+  return { uri: asset.uri, mimeType: asset.mimeType, fileName: asset.name, size: asset.size ?? undefined };
 }

@@ -50,6 +50,8 @@ export function ContactsListScreen({ navigation }: Props) {
               style={styles.searchbar}
             />
             <IconButton icon="camera-outline" onPress={() => navigation.navigate('BusinessCardScan')} />
+            <IconButton icon="file-upload-outline" onPress={() => navigation.navigate('DocumentImport')} />
+            <IconButton icon="card-account-phone-outline" onPress={() => navigation.navigate('ImportContacts')} />
             <IconButton icon="tag-outline" onPress={() => navigation.navigate('TagsManager')} />
           </View>
           <SegmentedButtons
