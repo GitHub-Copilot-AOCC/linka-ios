@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { PaperProvider, MD3LightTheme, ActivityIndicator } from 'react-native-paper';
 import { View } from 'react-native';
 import '@ui/i18n';
@@ -10,6 +11,9 @@ import { useAuthStore } from '@ui/store/authStore';
 import { LoginScreen } from '@ui/screens/LoginScreen';
 import { DashboardScreen } from '@ui/screens/DashboardScreen';
 import { ContactsListScreen } from '@ui/screens/ContactsListScreen';
+import { ContactDetailScreen } from '@ui/screens/ContactDetailScreen';
+import { AddContactScreen } from '@ui/screens/AddContactScreen';
+import type { ContactsStackParamList } from '@ui/navigation/ContactsStackParamList';
 
 // 對應 spec.md §4：手機版沿用 Web 版同一套 Material 3 token（見 Web repo src/ui/theme/theme.ts
 // 的 PRIMARY 色），react-native-paper 的 theme 物件結構跟 MUI 不同，這裡先用最小可行的顏色覆寫，
@@ -24,11 +28,18 @@ const theme = {
 };
 
 const Tab = createBottomTabNavigator();
+const ContactsStack = createNativeStackNavigator<ContactsStackParamList>();
 
-function ContactsRoute() {
-  const user = useAuthStore((s) => s.user);
-  if (!user) return null;
-  return <ContactsListScreen uid={user.uid} />;
+/** 對應 Web 版的 /contacts、/contacts/:contactId 路由（見 spec.md §11.5）。 */
+function ContactsNavigator() {
+  const { t } = useTranslation();
+  return (
+    <ContactsStack.Navigator>
+      <ContactsStack.Screen name="ContactsList" component={ContactsListScreen} options={{ title: t('contacts.title') }} />
+      <ContactsStack.Screen name="ContactDetail" component={ContactDetailScreen} options={{ title: t('editContact.title', { name: '' }) }} />
+      <ContactsStack.Screen name="AddContact" component={AddContactScreen} options={{ title: t('contacts.addContact') }} />
+    </ContactsStack.Navigator>
+  );
 }
 
 function MainTabs() {
@@ -36,7 +47,11 @@ function MainTabs() {
   return (
     <Tab.Navigator>
       <Tab.Screen name="Home" component={DashboardScreen} options={{ title: t('nav.home') }} />
-      <Tab.Screen name="Contacts" component={ContactsRoute} options={{ title: t('nav.contacts') }} />
+      <Tab.Screen
+        name="Contacts"
+        component={ContactsNavigator}
+        options={{ title: t('nav.contacts'), headerShown: false }}
+      />
     </Tab.Navigator>
   );
 }
