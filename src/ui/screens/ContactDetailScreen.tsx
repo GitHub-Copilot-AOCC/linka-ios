@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { ScrollView, View, StyleSheet, Alert } from 'react-native';
-import { Button, HelperText, Text, Avatar, IconButton, ActivityIndicator } from 'react-native-paper';
+import { Button, HelperText, Text, Avatar, IconButton, ActivityIndicator, TextInput } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { ContactsStackParamList } from '@ui/navigation/ContactsStackParamList';
 import { ContactFormFields, type ContactFormValues } from '@ui/components/ContactFormFields';
+import { ContactInteractionsSection } from '@ui/components/ContactInteractionsSection';
 import { useContactsStore } from '@ui/store/contactsStore';
 import { useAuthStore } from '@ui/store/authStore';
 import { MAX_PHOTOS_PER_CONTACT } from '@domain/contact';
@@ -38,12 +39,16 @@ export function ContactDetailScreen({ route, navigation }: Props) {
   const contact = contacts.find((c) => c.id === contactId);
 
   const [values, setValues] = useState<ContactFormValues | null>(contact ? toFormValues(contact) : null);
+  const [reminderDate, setReminderDate] = useState(contact?.nextContactReminder ?? '');
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
-    if (contact) setValues(toFormValues(contact));
+    if (contact) {
+      setValues(toFormValues(contact));
+      setReminderDate(contact.nextContactReminder ?? '');
+    }
   }, [contact?.id]);
 
   if (!contact || !values || !uid) {
@@ -67,8 +72,14 @@ export function ContactDetailScreen({ route, navigation }: Props) {
       email: values!.email || undefined,
       birthday: values!.birthday || undefined,
       notes: values!.notes || undefined,
+      nextContactReminder: reminderDate || undefined,
     });
     setSaving(false);
+  }
+
+  async function handleClearReminder() {
+    setReminderDate('');
+    await update(uid!, contactId, { nextContactReminder: undefined });
   }
 
   function handleDelete() {
@@ -141,6 +152,23 @@ export function ContactDetailScreen({ route, navigation }: Props) {
       </View>
 
       <ContactFormFields values={values} onChange={setValues} />
+
+      <Text variant="titleMedium" style={styles.sectionTitle}>
+        {t('setReminder.title', { name: contact.name })}
+      </Text>
+      <TextInput
+        label={t('setReminder.dateLabel')}
+        value={reminderDate}
+        onChangeText={setReminderDate}
+        placeholder="YYYY-MM-DD"
+        style={styles.input}
+      />
+      {reminderDate && (
+        <Button mode="text" onPress={handleClearReminder}>
+          {t('setReminder.clear')}
+        </Button>
+      )}
+
       {error && <HelperText type="error">{error}</HelperText>}
 
       <Button mode="contained" onPress={handleSave} loading={saving} disabled={saving} style={styles.button}>
@@ -149,6 +177,8 @@ export function ContactDetailScreen({ route, navigation }: Props) {
       <Button mode="outlined" textColor="#ba1a1a" onPress={handleDelete} style={styles.button}>
         {t('common.delete')}
       </Button>
+
+      <ContactInteractionsSection uid={uid} contactId={contactId} contactName={contact.name} />
     </ScrollView>
   );
 }
@@ -161,4 +191,5 @@ const styles = StyleSheet.create({
   photoWrap: { position: 'relative' },
   photoRemove: { position: 'absolute', top: -8, right: -8, margin: 0 },
   button: { marginTop: 8 },
+  input: { marginBottom: 8 },
 });
