@@ -15,6 +15,7 @@ import { ContactDetailScreen } from '@ui/screens/ContactDetailScreen';
 import { AddContactScreen } from '@ui/screens/AddContactScreen';
 import { TagsManagerScreen } from '@ui/screens/TagsManagerScreen';
 import { BusinessCardScanScreen } from '@ui/screens/BusinessCardScanScreen';
+import { AssistantChatScreen } from '@ui/screens/AssistantChatScreen';
 import type { ContactsStackParamList } from '@ui/navigation/ContactsStackParamList';
 
 // 對應 spec.md §4：手機版沿用 Web 版同一套 Material 3 token（見 Web repo src/ui/theme/theme.ts
@@ -56,6 +57,7 @@ function MainTabs() {
         component={ContactsNavigator}
         options={{ title: t('nav.contacts'), headerShown: false }}
       />
+      <Tab.Screen name="Assistant" component={AssistantChatScreen} options={{ title: t('nav.assistant') }} />
     </Tab.Navigator>
   );
 }
