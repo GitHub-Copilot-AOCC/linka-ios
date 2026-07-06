@@ -4,4 +4,5 @@ export type ContactsStackParamList = {
   AddContact: undefined;
   TagsManager: undefined;
   BusinessCardScan: undefined;
+  QuickCapture: undefined;
 };

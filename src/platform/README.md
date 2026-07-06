@@ -9,7 +9,7 @@
 | 照片/檔案選取 | `filePicker.ts` | `<input type="file">` | `expo-image-picker` + `expo-document-picker`（拆成 `pickImage`/`pickDocument` 兩個函式，RN 沒有對應的單一 API） |
 | 連線狀態偵測 | `connectivity.ts` | `window` online/offline 事件 | `@react-native-community/netinfo` |
 | 語系偵測 | `locale.ts` | `navigator.language` | `expo-localization` |
-| 錄音（§5.3a） | `audioRecorder.ts` | `MediaRecorder` | **尚未實作**，見檔案內 TODO，等 Phase 2 語音快速記錄畫面開發時再補 |
+| 錄音（§5.3a） | `audioRecorder.ts` | `MediaRecorder` | `expo-audio`，但公開 API 是 hook 形式（`useAudioRecorder`），跟其他平台檔案不同，這裡改成匯出 `useVoiceRecorder()` hook 而非指令式函式，QuickCaptureScreen 內直接呼叫 |
 
 ## `src/domain`、`src/data`、`src/services` 是從 Web repo 複製過來的，不是共用套件
 

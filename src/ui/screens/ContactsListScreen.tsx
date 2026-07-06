@@ -99,6 +99,7 @@ export function ContactsListScreen({ navigation }: Props) {
           )}
         />
       )}
+      <FAB icon="creation" style={styles.fabQuickCapture} onPress={() => navigation.navigate('QuickCapture')} />
       <FAB icon="plus" style={styles.fab} onPress={() => navigation.navigate('AddContact')} />
     </View>
   );
@@ -113,4 +114,5 @@ const styles = StyleSheet.create({
   tagChip: { marginRight: 6 },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   fab: { position: 'absolute', right: 16, bottom: 16 },
+  fabQuickCapture: { position: 'absolute', right: 16, bottom: 80 },
 });
