@@ -1,20 +1,68 @@
+import { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { PaperProvider, MD3LightTheme, ActivityIndicator } from 'react-native-paper';
+import { View } from 'react-native';
+import '@ui/i18n';
+import { useTranslation } from 'react-i18next';
+import { useAuthStore } from '@ui/store/authStore';
+import { LoginScreen } from '@ui/screens/LoginScreen';
+import { DashboardScreen } from '@ui/screens/DashboardScreen';
+import { ContactsListScreen } from '@ui/screens/ContactsListScreen';
 
-export default function App() {
+// 對應 spec.md §4：手機版沿用 Web 版同一套 Material 3 token（見 Web repo src/ui/theme/theme.ts
+// 的 PRIMARY 色），react-native-paper 的 theme 物件結構跟 MUI 不同，這裡先用最小可行的顏色覆寫，
+// 之後要抽成雙邊共用的 design token 檔案再細修。
+const theme = {
+  ...MD3LightTheme,
+  colors: {
+    ...MD3LightTheme.colors,
+    primary: '#5B5FEF',
+    secondary: '#FF9F43',
+  },
+};
+
+const Tab = createBottomTabNavigator();
+
+function ContactsRoute() {
+  const user = useAuthStore((s) => s.user);
+  if (!user) return null;
+  return <ContactsListScreen uid={user.uid} />;
+}
+
+function MainTabs() {
+  const { t } = useTranslation();
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <Tab.Navigator>
+      <Tab.Screen name="Home" component={DashboardScreen} options={{ title: t('nav.home') }} />
+      <Tab.Screen name="Contacts" component={ContactsRoute} options={{ title: t('nav.contacts') }} />
+    </Tab.Navigator>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+export default function App() {
+  const { user, initializing, init } = useAuthStore();
+
+  useEffect(() => {
+    const unsubscribe = init();
+    return unsubscribe;
+  }, [init]);
+
+  return (
+    <PaperProvider theme={theme}>
+      <NavigationContainer>
+        {initializing ? (
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+            <ActivityIndicator />
+          </View>
+        ) : user ? (
+          <MainTabs />
+        ) : (
+          <LoginScreen />
+        )}
+      </NavigationContainer>
+      <StatusBar style="auto" />
+    </PaperProvider>
+  );
+}

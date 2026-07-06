@@ -1,0 +1,260 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "save": "Save",
+    "saved": "Saved",
+    "delete": "Delete",
+    "close": "Close",
+    "add": "Add",
+    "back": "Back",
+    "deletedContact": "Deleted contact"
+  },
+  "contactDetail": {
+    "notFound": "Contact not found",
+    "tabBasic": "Basic Info",
+    "tabInteractions": "Interactions",
+    "tabResearch": "Web Research"
+  },
+  "firebaseNotConfigured": {
+    "title": "Firebase not configured",
+    "message": "Please set VITE_FIREBASE_* environment variables in .env and restart the dev server."
+  },
+  "auth": {
+    "loginTitle": "Log in to Linka",
+    "registerTitle": "Sign up for Linka",
+    "email": "Email",
+    "password": "Password",
+    "passwordHint": "Password (at least 8 characters)",
+    "loginButton": "Log in",
+    "registerButton": "Sign up",
+    "forgotPassword": "Forgot password?",
+    "enterEmailFirst": "Please enter your email first",
+    "resetSent": "Password reset email sent, please check your inbox",
+    "or": "or",
+    "googleLogin": "Sign in with Google",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "registerLink": "Sign up",
+    "loginLink": "Log in"
+  },
+  "nav": {
+    "appName": "Linka",
+    "home": "Home",
+    "contacts": "Contacts",
+    "assistant": "AI Assistant",
+    "settings": "Settings"
+  },
+  "dashboard": {
+    "title": "Home",
+    "noReminders": "Nothing to follow up on today.",
+    "upcomingBirthdaysTitle": "Upcoming birthdays",
+    "birthdayToday": "Birthday today!",
+    "daysUntilBirthday": "in {{days}} days",
+    "recentContactsTitle": "Recently added contacts",
+    "recentInteractionsTitle": "Recent interactions"
+  },
+  "reminders": {
+    "title": "People to contact today",
+    "dateLabel": "Reminder date: {{date}}",
+    "markDone": "Mark done"
+  },
+  "contacts": {
+    "title": "Contacts",
+    "searchPlaceholder": "Search name/company/role",
+    "sortByName": "By name",
+    "sortByImportance": "By star",
+    "tagsManager": "Manage tags",
+    "allTags": "All",
+    "empty": "No contacts yet — tap the button in the corner to add one.",
+    "noResults": "No contacts match \"{{keyword}}\".",
+    "setReminder": "Set reminder",
+    "interactions": "Interactions",
+    "suggestedTopics": "Suggested topics",
+    "webResearch": "Web research",
+    "longSilenceWarning": "No interactions in over 60 days — worth reaching out",
+    "moreActions": "More actions",
+    "edit": "Edit",
+    "addContact": "Add contact",
+    "quickCapture": "AI quick capture",
+    "name": "Name",
+    "company": "Company",
+    "duplicateNameWarning": "There's already a contact named \"{{name}}\" — is this the same person?"
+  },
+  "editContact": {
+    "title": "Edit {{name}}",
+    "importance": "Importance",
+    "photos": "Photos (up to {{max}})",
+    "role": "Role",
+    "phone": "Phone",
+    "birthday": "Birthday",
+    "linkedin": "LinkedIn",
+    "notes": "Notes",
+    "tags": "Tags",
+    "maxPhotosError": "Maximum {{max}} photos — remove one first"
+  },
+  "deleteContact": {
+    "title": "Delete contact?",
+    "confirm": "Are you sure you want to delete \"{{name}}\"? This cannot be undone (interaction history is not deleted automatically)."
+  },
+  "setReminder": {
+    "title": "Next contact reminder for {{name}}",
+    "dateLabel": "Reminder date",
+    "clear": "Clear reminder"
+  },
+  "interactionsDialog": {
+    "title": "Interactions with {{name}}",
+    "type": "Type",
+    "typeMeeting": "Meeting",
+    "typeCall": "Call",
+    "typeEmail": "Email",
+    "description": "Description",
+    "date": "Date",
+    "addInteraction": "Add interaction",
+    "empty": "No interactions yet",
+    "boundContacts": "Linked contacts"
+  },
+  "tags": {
+    "title": "Manage tags",
+    "newTagLabel": "New tag name",
+    "addInline": "Add tag"
+  },
+  "operationLog": {
+    "title": "Activity log",
+    "empty": "No activity yet."
+  },
+  "settings": {
+    "title": "Settings",
+    "account": "Account",
+    "aiUsage": "AI usage (this month)",
+    "aiUsageCount": "{{used}} / {{limit}}",
+    "aiUsageUnavailable": "No usage data yet",
+    "syncStatus": "Sync status",
+    "operationLog": "Activity log",
+    "view": "View",
+    "logout": "Log out",
+    "language": "Language",
+    "exportContacts": "Data export",
+    "exportDescription": "Export contacts and interactions as an Excel file",
+    "exportButton": "Download Excel"
+  },
+  "export": {
+    "sheetContacts": "Contacts",
+    "sheetInteractions": "Interactions",
+    "colContactName": "Contact"
+  },
+  "syncStatus": {
+    "offline": "Offline",
+    "syncing": "Syncing",
+    "synced": "Synced",
+    "offlineTooltip": "No network connection — data will sync automatically once you're back online"
+  },
+  "suggestedTopics": {
+    "title": "Suggested topics for {{name}}",
+    "description": "AI will suggest a few topics worth bringing up, based on this contact's profile and recent interactions.",
+    "generate": "Get suggestions",
+    "regenerate": "Regenerate",
+    "empty": "No suggestions right now, try again later.",
+    "genericError": "Couldn't get suggested topics. Please try again."
+  },
+  "contactResearch": {
+    "title": "Web research summary for {{name}}",
+    "disclaimer": "This summary is generated by AI from public web search results and may be inaccurate or about a different person with the same name. Please verify the sources yourself before relying on it.",
+    "search": "Search the web",
+    "searchAgain": "Search again",
+    "sources": "Sources:",
+    "empty": "No research yet — tap \"Search the web\" to run the first search.",
+    "genericError": "Search failed. Please try again."
+  },
+  "businessCard": {
+    "menuLabel": "Scan business card",
+    "title": "Business card scan",
+    "description": "Take a photo or upload a business card — AI will extract the name, role, company, phone, and email.",
+    "chooseImage": "Take photo / choose image",
+    "offlineError": "Business card scanning is unavailable while offline.",
+    "noNameError": "Couldn't detect a name in this image — try a different photo.",
+    "genericError": "Business card scan failed. Please try again.",
+    "confirmAdd": "Confirm & add contact",
+    "saving": "Adding…"
+  },
+  "aiSuggestions": {
+    "title": "Today's follow-ups",
+    "typeBirthday": "Birthday reminder",
+    "typeLongSilence": "Gone quiet",
+    "typeManualReminderDue": "Reminder due",
+    "unknownContact": "Unknown contact",
+    "triggerDate": "Trigger date: {{date}}",
+    "adoptedDescription": "Adopted AI suggestion: {{message}}",
+    "adopt": "Adopt",
+    "edit": "Edit",
+    "dismiss": "Dismiss",
+    "editTitle": "Adjust AI suggestion",
+    "interactionDescription": "Interaction description",
+    "interactionDate": "Interaction date",
+    "nextReminderOptional": "Next reminder date (optional)"
+  },
+  "quickCapture": {
+    "title": "AI quick capture",
+    "modeText": "Text",
+    "modeAudio": "Voice",
+    "textInputLabel": "Describe what just happened",
+    "textInputPlaceholder": "E.g. Had lunch with John today, he'll introduce a PM next week, remind me to follow up in two weeks.",
+    "audioTitle": "Voice input",
+    "audioDescription": "Record a short description — AI will split it into interactions, reminders, and suggestions.",
+    "startRecording": "Start recording",
+    "stopRecording": "Stop",
+    "recordedSize": "Recorded {{kb}} KB of audio",
+    "generatePreview": "Generate preview",
+    "generating": "Generating preview…",
+    "offlineError": "AI quick capture is unavailable while offline.",
+    "textRequiredError": "Please enter a description first.",
+    "audioRequiredError": "Please record something first.",
+    "genericError": "AI quick capture failed. Please try again.",
+    "createContactError": "Couldn't create new contact: {{name}}",
+    "logAction": "AI quick capture",
+    "summaryTitle": "AI preview summary",
+    "contactMatchesTitle": "Contact matches",
+    "newContactChip": "New contact: {{name}}",
+    "suggestedInteractionsTitle": "Interactions to save",
+    "reminderSuggestionsTitle": "Reminder suggestions",
+    "importanceSuggestionsTitle": "Importance suggestions",
+    "importanceSuggestionLabel": "Suggested level {{level}} · {{reason}}",
+    "saving": "Saving…",
+    "confirmSave": "Confirm & save"
+  },
+  "import": {
+    "menuLabel": "Import contacts",
+    "title": "Import contacts",
+    "description": "Choose a vCard (.vcf) file to import multiple contacts.",
+    "chooseFile": "Choose file",
+    "noContactsFound": "No contacts found in this file",
+    "foundCount": "Found {{count}} contacts — select the ones to import:",
+    "duplicate": "Possible duplicate",
+    "importSelected": "Import {{count}}"
+  },
+  "assistantChat": {
+    "title": "AI Assistant",
+    "emptyHint": "Ask me anything about your contacts, e.g. \"What did I discuss with John last time?\" or \"Who do I know that works at Google?\"",
+    "inputPlaceholder": "Type your question…",
+    "send": "Send",
+    "thinking": "The assistant is thinking…",
+    "assistantLabel": "AI Assistant",
+    "citationWithDate": "{{name}} ({{date}})",
+    "genericError": "Something went wrong. Please try again."
+  },
+  "docImport": {
+    "menuLabel": "Import from document",
+    "title": "Import contacts from document",
+    "description": "Upload a PDF, Word (.docx), or Excel (.xlsx/.csv) file containing a contact list. AI will extract the contacts for you to review before importing.",
+    "chooseFile": "Choose file",
+    "fileTooLarge": "File is too large — please choose a file under {{maxMB}}MB.",
+    "unsupportedType": "Unsupported file type — please choose a PDF, .docx, .xlsx, or .csv file.",
+    "offlineError": "Document import is unavailable while offline.",
+    "parsing": "Analyzing document…",
+    "noContactsFound": "No contacts could be identified in this document.",
+    "genericError": "Failed to parse this document. Please try again.",
+    "foundCount": "Found {{count}} contacts — review and select the ones to import:",
+    "duplicate": "Possible duplicate",
+    "importSelected": "Import {{count}}",
+    "importing": "Importing…"
+  }
+}

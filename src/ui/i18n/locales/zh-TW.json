@@ -1,0 +1,260 @@
+{
+  "common": {
+    "cancel": "取消",
+    "save": "儲存",
+    "saved": "已儲存",
+    "delete": "刪除",
+    "close": "關閉",
+    "add": "新增",
+    "back": "返回",
+    "deletedContact": "已刪除的聯絡人"
+  },
+  "contactDetail": {
+    "notFound": "找不到這位聯絡人",
+    "tabBasic": "基本資料",
+    "tabInteractions": "互動紀錄",
+    "tabResearch": "網路研究摘要"
+  },
+  "firebaseNotConfigured": {
+    "title": "Firebase 未設定",
+    "message": "請在 .env 設定 VITE_FIREBASE_* 環境變數後重新啟動 dev server。"
+  },
+  "auth": {
+    "loginTitle": "登入 Linka",
+    "registerTitle": "註冊 Linka",
+    "email": "Email",
+    "password": "密碼",
+    "passwordHint": "密碼（至少 8 個字元）",
+    "loginButton": "登入",
+    "registerButton": "註冊",
+    "forgotPassword": "忘記密碼？",
+    "enterEmailFirst": "請先輸入 Email",
+    "resetSent": "重設密碼信已寄出，請查看信箱",
+    "or": "或",
+    "googleLogin": "用 Google 登入",
+    "noAccount": "還沒有帳號？",
+    "hasAccount": "已經有帳號？",
+    "registerLink": "註冊",
+    "loginLink": "登入"
+  },
+  "nav": {
+    "appName": "Linka",
+    "home": "首頁",
+    "contacts": "聯絡人",
+    "assistant": "AI 秘書問答",
+    "settings": "設定"
+  },
+  "dashboard": {
+    "title": "首頁",
+    "noReminders": "今天沒有需要處理的提醒。",
+    "upcomingBirthdaysTitle": "即將到來的生日",
+    "birthdayToday": "今天生日！",
+    "daysUntilBirthday": "{{days}} 天後",
+    "recentContactsTitle": "最近新增的聯絡人",
+    "recentInteractionsTitle": "最近的互動紀錄"
+  },
+  "reminders": {
+    "title": "今天該聯絡的人",
+    "dateLabel": "提醒日期：{{date}}",
+    "markDone": "標記完成"
+  },
+  "contacts": {
+    "title": "聯絡人",
+    "searchPlaceholder": "搜尋姓名/公司/職稱",
+    "sortByName": "依姓名",
+    "sortByImportance": "依星級",
+    "tagsManager": "標籤管理",
+    "allTags": "全部",
+    "empty": "還沒有聯絡人，點右下角按鈕新增第一位。",
+    "noResults": "找不到符合「{{keyword}}」的聯絡人。",
+    "setReminder": "設定提醒",
+    "interactions": "互動紀錄",
+    "suggestedTopics": "建議話題",
+    "webResearch": "搜尋網路資料",
+    "longSilenceWarning": "超過 60 天沒有互動紀錄，該找個時間聯絡一下了",
+    "moreActions": "更多操作",
+    "edit": "編輯",
+    "addContact": "新增聯絡人",
+    "quickCapture": "AI 快速記錄",
+    "name": "姓名",
+    "company": "公司",
+    "duplicateNameWarning": "已經有一位「{{name}}」了，確定不是同一個人嗎？"
+  },
+  "editContact": {
+    "title": "編輯 {{name}}",
+    "importance": "重要性星級",
+    "photos": "照片（最多 {{max}} 張）",
+    "role": "職稱",
+    "phone": "電話",
+    "birthday": "生日",
+    "linkedin": "LinkedIn",
+    "notes": "備註",
+    "tags": "標籤",
+    "maxPhotosError": "最多只能有 {{max}} 張照片，請先移除一張"
+  },
+  "deleteContact": {
+    "title": "刪除聯絡人？",
+    "confirm": "確定要刪除「{{name}}」嗎？此操作無法復原（互動紀錄不會自動刪除）。"
+  },
+  "setReminder": {
+    "title": "{{name}} 的下次聯絡提醒",
+    "dateLabel": "提醒日期",
+    "clear": "清除提醒"
+  },
+  "interactionsDialog": {
+    "title": "{{name}} 的互動紀錄",
+    "type": "類型",
+    "typeMeeting": "會議",
+    "typeCall": "通話",
+    "typeEmail": "Email",
+    "description": "描述",
+    "date": "日期",
+    "addInteraction": "新增互動",
+    "empty": "還沒有互動紀錄",
+    "boundContacts": "綁定聯絡人"
+  },
+  "tags": {
+    "title": "標籤管理",
+    "newTagLabel": "新標籤名稱",
+    "addInline": "新增標籤"
+  },
+  "operationLog": {
+    "title": "操作歷史",
+    "empty": "還沒有任何操作紀錄。"
+  },
+  "settings": {
+    "title": "設定",
+    "account": "帳號",
+    "aiUsage": "AI 使用次數（本月）",
+    "aiUsageCount": "{{used}} / {{limit}} 次",
+    "aiUsageUnavailable": "尚無用量資料",
+    "syncStatus": "同步狀態",
+    "operationLog": "操作歷史",
+    "view": "查看",
+    "logout": "登出",
+    "language": "語言",
+    "exportContacts": "資料匯出",
+    "exportDescription": "匯出聯絡人與互動紀錄成 Excel 檔案",
+    "exportButton": "下載 Excel"
+  },
+  "export": {
+    "sheetContacts": "聯絡人",
+    "sheetInteractions": "互動紀錄",
+    "colContactName": "聯絡人"
+  },
+  "syncStatus": {
+    "offline": "離線中",
+    "syncing": "同步中",
+    "synced": "已同步",
+    "offlineTooltip": "無網路連線，資料會在恢復連線後自動同步"
+  },
+  "suggestedTopics": {
+    "title": "{{name}} 的建議話題",
+    "description": "AI 會根據這位聯絡人的資料與最近互動紀錄，建議幾個適合聊的話題。",
+    "generate": "取得建議",
+    "regenerate": "重新產生",
+    "empty": "目前沒有建議話題，稍後再試試看。",
+    "genericError": "取得建議話題失敗，請稍後再試。"
+  },
+  "contactResearch": {
+    "title": "{{name}} 的網路研究摘要",
+    "disclaimer": "此摘要由 AI 自動搜尋網路公開資訊產生，可能不準確，或誤植為同名同姓的其他人，請務必自行查證來源後再參考使用。",
+    "search": "搜尋網路資料",
+    "searchAgain": "再次搜尋",
+    "sources": "來源：",
+    "empty": "尚無研究紀錄，點擊「搜尋網路資料」開始第一次搜尋。",
+    "genericError": "搜尋失敗，請稍後再試。"
+  },
+  "businessCard": {
+    "menuLabel": "掃描名片",
+    "title": "名片辨識",
+    "description": "拍照或上傳一張名片，AI 會自動辨識姓名、職稱、公司、電話、Email。",
+    "chooseImage": "拍照/選擇圖片",
+    "offlineError": "離線時無法使用名片辨識。",
+    "noNameError": "無法從這張圖片辨識出姓名，請換一張再試。",
+    "genericError": "名片辨識失敗，請稍後再試。",
+    "confirmAdd": "確認新增聯絡人",
+    "saving": "新增中…"
+  },
+  "aiSuggestions": {
+    "title": "今天需要處理",
+    "typeBirthday": "生日提醒",
+    "typeLongSilence": "久未聯絡",
+    "typeManualReminderDue": "手動提醒到期",
+    "unknownContact": "未知聯絡人",
+    "triggerDate": "觸發日期：{{date}}",
+    "adoptedDescription": "已採納 AI 建議：{{message}}",
+    "adopt": "採納",
+    "edit": "修改",
+    "dismiss": "忽略",
+    "editTitle": "調整 AI 建議",
+    "interactionDescription": "互動描述",
+    "interactionDate": "互動日期",
+    "nextReminderOptional": "下次提醒日期（可留白）"
+  },
+  "quickCapture": {
+    "title": "AI 快速記錄",
+    "modeText": "文字",
+    "modeAudio": "語音",
+    "textInputLabel": "輸入剛剛發生的互動",
+    "textInputPlaceholder": "例如：今天和王小明吃午餐，他說下週會介紹產品經理給我，兩週後提醒我再跟進。",
+    "audioTitle": "語音輸入",
+    "audioDescription": "直接錄下一段描述，AI 會拆成互動、提醒與建議。",
+    "startRecording": "開始錄音",
+    "stopRecording": "停止",
+    "recordedSize": "已錄製 {{kb}} KB 音訊",
+    "generatePreview": "產生預覽",
+    "generating": "產生預覽中…",
+    "offlineError": "離線時無法使用 AI 快速記錄。",
+    "textRequiredError": "請先輸入一段文字描述。",
+    "audioRequiredError": "請先完成一段錄音。",
+    "genericError": "AI 快速記錄失敗，請稍後再試。",
+    "createContactError": "無法建立新聯絡人：{{name}}",
+    "logAction": "AI 快速記錄",
+    "summaryTitle": "AI 預覽摘要",
+    "contactMatchesTitle": "聯絡人比對",
+    "newContactChip": "新聯絡人：{{name}}",
+    "suggestedInteractionsTitle": "建議寫入的互動",
+    "reminderSuggestionsTitle": "提醒建議",
+    "importanceSuggestionsTitle": "星級建議",
+    "importanceSuggestionLabel": "建議星級 {{level}} · {{reason}}",
+    "saving": "寫入中…",
+    "confirmSave": "確認寫入"
+  },
+  "import": {
+    "menuLabel": "匯入聯絡人",
+    "title": "匯入聯絡人",
+    "description": "選擇一份 vCard（.vcf）檔案，匯入多筆聯絡人。",
+    "chooseFile": "選擇檔案",
+    "noContactsFound": "這個檔案裡沒有找到任何聯絡人",
+    "foundCount": "找到 {{count}} 筆聯絡人，勾選要匯入的項目：",
+    "duplicate": "可能重複",
+    "importSelected": "匯入 {{count}} 筆"
+  },
+  "assistantChat": {
+    "title": "AI 秘書問答",
+    "emptyHint": "問我任何關於你人脈資料庫的問題，例如「我上次跟王小明見面聊了什麼」或「我認識哪些在 Google 工作的人」。",
+    "inputPlaceholder": "輸入你的問題…",
+    "send": "送出",
+    "thinking": "AI 秘書思考中…",
+    "assistantLabel": "AI 秘書",
+    "citationWithDate": "{{name}}（{{date}}）",
+    "genericError": "問答失敗，請稍後再試。"
+  },
+  "docImport": {
+    "menuLabel": "從文件匯入",
+    "title": "從文件批次匯入聯絡人",
+    "description": "上傳一份包含聯絡人清單的 PDF、Word（.docx）或 Excel（.xlsx/.csv）文件，AI 會自動解析出聯絡人，供您確認後再匯入。",
+    "chooseFile": "選擇檔案",
+    "fileTooLarge": "檔案過大，請選擇 {{maxMB}}MB 以下的檔案。",
+    "unsupportedType": "不支援的檔案格式，請選擇 PDF、.docx、.xlsx 或 .csv 檔案。",
+    "offlineError": "離線時無法使用文件匯入功能。",
+    "parsing": "AI 解析中…",
+    "noContactsFound": "無法從這份文件中辨識出任何聯絡人。",
+    "genericError": "文件解析失敗，請稍後再試。",
+    "foundCount": "找到 {{count}} 筆聯絡人，請確認並勾選要匯入的項目：",
+    "duplicate": "可能重複",
+    "importSelected": "匯入 {{count}} 筆",
+    "importing": "匯入中…"
+  }
+}

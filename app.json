@@ -1,13 +1,14 @@
 {
   "expo": {
-    "name": "linka-ios",
+    "name": "Linka",
     "slug": "linka-ios",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.linka.app"
     },
     "android": {
       "adaptiveIcon": {
@@ -20,6 +21,24 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Linka 需要使用麥克風錄音，用於 AI 語音快速記錄功能。"
+        }
+      ],
+      "expo-localization",
+      "expo-asset",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Linka 需要存取相簿，用於選擇聯絡人照片或名片圖片。",
+          "cameraPermission": "Linka 需要使用相機，用於拍攝名片或聯絡人照片。"
+        }
+      ],
+      "expo-document-picker"
+    ]
   }
 }
