@@ -8,6 +8,8 @@ import { filterContactsByKeyword, filterContactsByTag, sortContacts, type Contac
 import { useContactsStore } from '@ui/store/contactsStore';
 import { useTagsStore } from '@ui/store/tagsStore';
 import { useAuthStore } from '@ui/store/authStore';
+import { avatarColorFor } from '@ui/theme/avatarPalette';
+import { tagStyleFor } from '@ui/theme/tagPalette';
 
 type Props = NativeStackScreenProps<ContactsStackParamList, 'ContactsList'>;
 
@@ -69,15 +71,21 @@ export function ContactsListScreen({ navigation }: Props) {
               data={tags}
               keyExtractor={(tag) => tag.id}
               style={styles.tagFilterRow}
-              renderItem={({ item }) => (
-                <Chip
-                  selected={activeTagId === item.id}
-                  onPress={() => setActiveTagId(activeTagId === item.id ? null : item.id)}
-                  style={styles.tagChip}
-                >
-                  {item.name}
-                </Chip>
-              )}
+              renderItem={({ item }) => {
+                const style = tagStyleFor(item.id);
+                const active = activeTagId === item.id;
+                return (
+                  <Chip
+                    icon={style.icon}
+                    selected={active}
+                    onPress={() => setActiveTagId(active ? null : item.id)}
+                    style={[styles.tagChip, { backgroundColor: style.bg }]}
+                    textStyle={{ color: style.fg }}
+                  >
+                    {item.name}
+                  </Chip>
+                );
+              }}
             />
           )}
         </>
@@ -95,7 +103,9 @@ export function ContactsListScreen({ navigation }: Props) {
             <List.Item
               title={item.name}
               description={item.company}
-              left={() => <Avatar.Text size={40} label={item.name.slice(0, 1)} />}
+              left={() => (
+                <Avatar.Text size={40} label={item.name.slice(0, 1)} style={{ backgroundColor: avatarColorFor(item.id) }} />
+              )}
               onPress={() => navigation.navigate('ContactDetail', { contactId: item.id })}
             />
           )}

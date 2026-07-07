@@ -5,6 +5,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { PaperProvider, MD3LightTheme, ActivityIndicator } from 'react-native-paper';
 import { View } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import '@ui/i18n';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@ui/store/authStore';
@@ -68,10 +69,27 @@ function SettingsNavigator() {
   );
 }
 
+// 對應 spec.md §11.2 底部導覽（見 Web 版 NavShell.tsx 的 HomeIcon/PeopleIcon/ChatIcon/SettingsIcon）。
+// 之前漏了這個設定，React Navigation 沒拿到圖示元件時會自己套一個預設佔位圖形。
+const TAB_ICONS: Record<string, string> = {
+  Home: 'home',
+  Contacts: 'account-group',
+  Assistant: 'chat',
+  Settings: 'cog',
+};
+
 function MainTabs() {
   const { t } = useTranslation();
   return (
-    <Tab.Navigator>
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ color, size, focused }) => {
+          const base = TAB_ICONS[route.name];
+          const name = focused ? base : `${base}-outline`;
+          return <MaterialCommunityIcons name={name as never} color={color} size={size} />;
+        },
+      })}
+    >
       <Tab.Screen name="Home" component={DashboardScreen} options={{ title: t('nav.home') }} />
       <Tab.Screen
         name="Contacts"
@@ -97,7 +115,10 @@ export default function App() {
   }, [init]);
 
   return (
-    <PaperProvider theme={theme}>
+    // react-native-paper 預設用 react-native-vector-icons 畫圖示，這個套件的字型檔在我們的
+    // expo prebuild 流程裡沒有正確連結進 iOS binary（真機截圖裡所有圖示都變成 "?" 方框）。
+    // 改成明確指定用 @expo/vector-icons——這套字型是 Expo 自己管理、保證會正確打包。
+    <PaperProvider theme={theme} settings={{ icon: (props) => <MaterialCommunityIcons {...props} /> }}>
       <NavigationContainer>
         {initializing ? (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>

@@ -12,6 +12,7 @@ import { recentInteractions, todayDateString } from '@domain/interaction';
 import { useAuthStore } from '@ui/store/authStore';
 import { useContactsStore } from '@ui/store/contactsStore';
 import { useInteractionsStore } from '@ui/store/interactionsStore';
+import { avatarColorFor } from '@ui/theme/avatarPalette';
 
 /**
  * 首頁摘要（見 spec.md §5.4、§11.3）：手動提醒待辦 + 即將到來的生日 + 最近新增/互動，
@@ -57,7 +58,7 @@ export function DashboardScreen() {
               key={c.id}
               title={c.name}
               description={t('reminders.dateLabel', { date: c.nextContactReminder })}
-              left={() => <Avatar.Text size={36} label={c.name.slice(0, 1)} />}
+              left={() => <Avatar.Text size={36} label={c.name.slice(0, 1)} style={{ backgroundColor: avatarColorFor(c.id) }} />}
             />
           ))}
         </View>
@@ -71,7 +72,7 @@ export function DashboardScreen() {
               key={contact.id}
               title={contact.name}
               description={daysUntil === 0 ? t('dashboard.birthdayToday') : t('dashboard.daysUntilBirthday', { days: daysUntil })}
-              left={() => <Avatar.Text size={36} label={contact.name.slice(0, 1)} />}
+              left={() => <Avatar.Text size={36} label={contact.name.slice(0, 1)} style={{ backgroundColor: avatarColorFor(contact.id) }} />}
             />
           ))}
         </View>
@@ -85,7 +86,7 @@ export function DashboardScreen() {
               key={c.id}
               title={c.name}
               description={c.company}
-              left={() => <Avatar.Text size={36} label={c.name.slice(0, 1)} />}
+              left={() => <Avatar.Text size={36} label={c.name.slice(0, 1)} style={{ backgroundColor: avatarColorFor(c.id) }} />}
             />
           ))}
         </View>

@@ -4,6 +4,7 @@ import { TextInput, Button, Chip, HelperText, Text } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import { useTagsStore } from '@ui/store/tagsStore';
 import { useAuthStore } from '@ui/store/authStore';
+import { tagStyleFor } from '@ui/theme/tagPalette';
 
 /** 標籤管理（見 spec.md §5.2）：預設分類 + 使用者自訂標籤的新增/刪除。 */
 export function TagsManagerScreen() {
@@ -46,11 +47,20 @@ export function TagsManagerScreen() {
       </View>
       {error && <HelperText type="error">{error}</HelperText>}
       <View style={styles.chipRow}>
-        {tags.map((tag) => (
-          <Chip key={tag.id} onClose={() => uid && remove(uid, tag.id)} style={styles.chip}>
-            {tag.name}
-          </Chip>
-        ))}
+        {tags.map((tag) => {
+          const style = tagStyleFor(tag.id);
+          return (
+            <Chip
+              key={tag.id}
+              icon={style.icon}
+              onClose={() => uid && remove(uid, tag.id)}
+              style={[styles.chip, { backgroundColor: style.bg }]}
+              textStyle={{ color: style.fg }}
+            >
+              {tag.name}
+            </Chip>
+          );
+        })}
       </View>
     </View>
   );
