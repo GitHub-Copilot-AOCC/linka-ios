@@ -55,6 +55,7 @@ export function AssistantChatScreen() {
         ref={listRef}
         data={messages}
         keyExtractor={(_, i) => String(i)}
+        style={styles.messageList}
         contentContainerStyle={styles.list}
         ListEmptyComponent={<Text style={styles.emptyHint}>{t('assistantChat.emptyHint')}</Text>}
         renderItem={({ item }) =>
@@ -107,6 +108,7 @@ export function AssistantChatScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  messageList: { flex: 1 },
   list: { padding: 16, gap: 8 },
   emptyHint: { color: '#666', marginTop: 16 },
   assistantBubble: { alignSelf: 'flex-start', maxWidth: '85%', marginBottom: 8 },
