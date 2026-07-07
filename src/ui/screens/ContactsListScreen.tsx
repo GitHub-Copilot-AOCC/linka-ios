@@ -66,27 +66,35 @@ export function ContactsListScreen({ navigation }: Props) {
             ]}
           />
           {tags.length > 0 && (
-            <FlatList
-              horizontal
-              data={tags}
-              keyExtractor={(tag) => tag.id}
-              style={styles.tagFilterRow}
-              renderItem={({ item }) => {
-                const style = tagStyleFor(item.id);
-                const active = activeTagId === item.id;
+            // 見 spec.md §5.2：Web 版標籤列會自動換行、一次顯示全部（見 Web repo
+            // ContactsListScreen.tsx 的 flexWrap: 'wrap'），不是橫向滑動單行——之前用橫向
+            // FlatList 會把大部分標籤捲到畫面外看不到，改成跟 TagMultiSelect 一樣的換行版面。
+            <View style={styles.tagFilterRow}>
+              <Chip
+                icon="view-grid-outline"
+                selected={activeTagId === null}
+                onPress={() => setActiveTagId(null)}
+                style={styles.tagChip}
+              >
+                {t('contacts.allTags')}
+              </Chip>
+              {tags.map((tag) => {
+                const style = tagStyleFor(tag.id);
+                const active = activeTagId === tag.id;
                 return (
                   <Chip
+                    key={tag.id}
                     icon={style.icon}
                     selected={active}
-                    onPress={() => setActiveTagId(active ? null : item.id)}
+                    onPress={() => setActiveTagId(active ? null : tag.id)}
                     style={[styles.tagChip, { backgroundColor: style.bg }]}
                     textStyle={{ color: style.fg }}
                   >
-                    {item.name}
+                    {tag.name}
                   </Chip>
                 );
-              }}
-            />
+              })}
+            </View>
           )}
         </>
       )}
@@ -122,8 +130,8 @@ const styles = StyleSheet.create({
   toolbarRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingTop: 8 },
   searchbar: { flex: 1 },
   sortRow: { marginHorizontal: 8, marginTop: 8 },
-  tagFilterRow: { marginHorizontal: 8, marginTop: 8 },
-  tagChip: { marginRight: 6 },
+  tagFilterRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginHorizontal: 8, marginTop: 8 },
+  tagChip: { marginRight: 4, marginBottom: 4 },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   fab: { position: 'absolute', right: 16, bottom: 16 },
   fabQuickCapture: { position: 'absolute', right: 16, bottom: 80 },
