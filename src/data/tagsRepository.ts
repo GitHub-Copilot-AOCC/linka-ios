@@ -20,9 +20,13 @@ function fromFirestore(id: string, data: Record<string, unknown>): Tag {
 }
 
 export function subscribeTags(uid: string, onChange: (tags: Tag[]) => void): () => void {
-  return onSnapshot(tagsCollection(uid), (snapshot) => {
-    onChange(snapshot.docs.map((d) => fromFirestore(d.id, d.data())));
-  });
+  return onSnapshot(
+    tagsCollection(uid),
+    (snapshot) => {
+      onChange(snapshot.docs.map((d) => fromFirestore(d.id, d.data())));
+    },
+    (error) => console.error('[subscribeTags] Firestore error:', error)
+  );
 }
 
 export async function createTag(uid: string, input: NewTagInput): Promise<string> {

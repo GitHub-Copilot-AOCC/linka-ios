@@ -43,17 +43,36 @@ export function subscribeInteractionsForContact(
     where('contactIds', 'array-contains', contactId),
     orderBy('date', 'desc')
   );
-  return onSnapshot(q, (snapshot) => {
-    onChange(snapshot.docs.map((d) => fromFirestore(d.id, d.data())));
-  });
+  // onSnapshot 沒有錯誤 callback 時，RN 環境下 Firestore 監聽器擲出的錯誤不會被 JS 的
+  // try/catch 接住（不是在一般的 render/event handler 呼叫堆疊裡），會直接讓 native 層
+  // 把整個 App 砍掉（見使用者回報：點進聯絡人詳情頁就直接跳出 App，這是目前唯一一個
+  // 用到 array-contains + orderBy 複合查詢的地方，最可能是原因）。加錯誤 callback 保底，
+  // 即使真的有 Firestore 錯誤（例如缺索引），也只會讓這份清單顯示空的，不會讓整個 App 死掉。
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      onChange(snapshot.docs.map((d) => fromFirestore(d.id, d.data())));
+    },
+    (error) => {
+      console.error('[subscribeInteractionsForContact] Firestore error:', error);
+      onChange([]);
+    }
+  );
 }
 
 /** 訂閱使用者所有互動紀錄（不限單一聯絡人），供 §11.4 列表久未聯絡色彩警示計算「每位聯絡人最近互動日期」使用。 */
 export function subscribeAllInteractions(uid: string, onChange: (interactions: Interaction[]) => void): () => void {
   const q = query(interactionsCollection(uid), orderBy('date', 'desc'));
-  return onSnapshot(q, (snapshot) => {
-    onChange(snapshot.docs.map((d) => fromFirestore(d.id, d.data())));
-  });
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      onChange(snapshot.docs.map((d) => fromFirestore(d.id, d.data())));
+    },
+    (error) => {
+      console.error('[subscribeAllInteractions] Firestore error:', error);
+      onChange([]);
+    }
+  );
 }
 
 /**

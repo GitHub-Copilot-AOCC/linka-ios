@@ -21,9 +21,13 @@ function fromFirestore(id: string, data: Record<string, unknown>): AgentSuggesti
 
 export function subscribeSuggestions(uid: string, onChange: (suggestions: AgentSuggestion[]) => void): () => void {
   const q = query(suggestionsCollection(uid), orderBy('createdAt', 'desc'));
-  return onSnapshot(q, (snapshot) => {
-    onChange(snapshot.docs.map((item) => fromFirestore(item.id, item.data())));
-  });
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      onChange(snapshot.docs.map((item) => fromFirestore(item.id, item.data())));
+    },
+    (error) => console.error('[subscribeSuggestions] Firestore error:', error)
+  );
 }
 
 export async function updateSuggestionStatus(

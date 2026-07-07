@@ -11,7 +11,11 @@ export function subscribeUsageQuota(
   onChange: (quota: UsageQuota | null) => void
 ): () => void {
   if (!db) return () => {};
-  return onSnapshot(doc(db, 'users', uid, 'usage', periodId), (snapshot) => {
-    onChange(snapshot.exists() ? (snapshot.data() as UsageQuota) : null);
-  });
+  return onSnapshot(
+    doc(db, 'users', uid, 'usage', periodId),
+    (snapshot) => {
+      onChange(snapshot.exists() ? (snapshot.data() as UsageQuota) : null);
+    },
+    (error) => console.error('[subscribeUsageQuota] Firestore error:', error)
+  );
 }

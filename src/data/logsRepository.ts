@@ -28,7 +28,11 @@ export async function createLogEntry(uid: string, input: NewLogEntryInput): Prom
 /** 訂閱最近的操作歷史（見 spec.md §5.10），依時間新到舊，限制筆數避免一次載入過多。 */
 export function subscribeRecentLogs(uid: string, onChange: (logs: LogEntry[]) => void, maxCount = 50): () => void {
   const q = query(logsCollection(uid), orderBy('createdAt', 'desc'), limit(maxCount));
-  return onSnapshot(q, (snapshot) => {
-    onChange(snapshot.docs.map((d) => fromFirestore(d.id, d.data())));
-  });
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      onChange(snapshot.docs.map((d) => fromFirestore(d.id, d.data())));
+    },
+    (error) => console.error('[subscribeRecentLogs] Firestore error:', error)
+  );
 }

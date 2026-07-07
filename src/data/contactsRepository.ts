@@ -53,9 +53,13 @@ function fromFirestore(id: string, data: Record<string, unknown>): Contact {
 /** 訂閱使用者的聯絡人列表（依姓名排序），供 UI store 使用；回傳取消訂閱函式。 */
 export function subscribeContacts(uid: string, onChange: (contacts: Contact[]) => void): () => void {
   const q = query(contactsCollection(uid), orderBy('name'));
-  return onSnapshot(q, (snapshot) => {
-    onChange(snapshot.docs.map((d) => fromFirestore(d.id, d.data())));
-  });
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      onChange(snapshot.docs.map((d) => fromFirestore(d.id, d.data())));
+    },
+    (error) => console.error('[subscribeContacts] Firestore error:', error)
+  );
 }
 
 export async function createContact(uid: string, input: NewContactInput): Promise<string> {
