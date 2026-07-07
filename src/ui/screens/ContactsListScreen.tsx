@@ -75,6 +75,7 @@ export function ContactsListScreen({ navigation }: Props) {
                 selected={activeTagId === null}
                 onPress={() => setActiveTagId(null)}
                 style={styles.tagChip}
+                textStyle={styles.tagChipText}
               >
                 {t('contacts.allTags')}
               </Chip>
@@ -88,7 +89,7 @@ export function ContactsListScreen({ navigation }: Props) {
                     selected={active}
                     onPress={() => setActiveTagId(active ? null : tag.id)}
                     style={[styles.tagChip, { backgroundColor: style.bg }]}
-                    textStyle={{ color: style.fg }}
+                    textStyle={[styles.tagChipText, { color: style.fg }]}
                   >
                     {tag.name}
                   </Chip>
@@ -132,6 +133,9 @@ const styles = StyleSheet.create({
   sortRow: { marginHorizontal: 8, marginTop: 8 },
   tagFilterRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginHorizontal: 8, marginTop: 8 },
   tagChip: { marginRight: 4, marginBottom: 4 },
+  // Chip 內建的行高是照西文字體比例調的，中文字元的字高比較滿，行高不夠會讓下半部被裁掉
+  // （見使用者截圖回報：「客戶」兩個字下緣被切掉），明確加大行高留出足夠空間。
+  tagChipText: { lineHeight: 22 },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   fab: { position: 'absolute', right: 16, bottom: 16 },
   fabQuickCapture: { position: 'absolute', right: 16, bottom: 80 },

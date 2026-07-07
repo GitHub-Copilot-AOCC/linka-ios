@@ -55,7 +55,7 @@ export function TagsManagerScreen() {
               icon={style.icon}
               onClose={() => uid && remove(uid, tag.id)}
               style={[styles.chip, { backgroundColor: style.bg }]}
-              textStyle={{ color: style.fg }}
+              textStyle={[styles.chipText, { color: style.fg }]}
             >
               {tag.name}
             </Chip>
@@ -73,4 +73,6 @@ const styles = StyleSheet.create({
   input: { flex: 1 },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 },
   chip: { marginRight: 4 },
+  // 中文字元的行高需求比 Chip 內建的西文預設值高，不然下緣會被裁掉（見 ContactsListScreen.tsx 同樣註解）。
+  chipText: { lineHeight: 22 },
 });

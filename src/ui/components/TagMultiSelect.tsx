@@ -27,7 +27,7 @@ export function TagMultiSelect({ selectedIds, onChange }: TagMultiSelectProps) {
             selected={selectedIds.includes(tag.id)}
             onPress={() => toggle(tag.id)}
             style={[styles.chip, { backgroundColor: style.bg }]}
-            textStyle={{ color: style.fg }}
+            textStyle={[styles.chipText, { color: style.fg }]}
           >
             {tag.name}
           </Chip>
@@ -40,4 +40,6 @@ export function TagMultiSelect({ selectedIds, onChange }: TagMultiSelectProps) {
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 8 },
   chip: { marginRight: 4 },
+  // 中文字元的行高需求比 Chip 內建的西文預設值高，不然下緣會被裁掉（見 ContactsListScreen.tsx 同樣註解）。
+  chipText: { lineHeight: 22 },
 });
