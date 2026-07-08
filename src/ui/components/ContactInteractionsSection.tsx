@@ -94,8 +94,8 @@ export function ContactInteractionsSection({ uid, contactId, contactName }: Cont
   );
 }
 
-function capitalize(s: string): string {
-  return s.charAt(0).toUpperCase() + s.slice(1);
+function capitalize(s: string | undefined): string {
+  return s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
 }
 
 const styles = StyleSheet.create({

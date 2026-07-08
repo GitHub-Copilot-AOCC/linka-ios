@@ -15,6 +15,11 @@
     "tabInteractions": "互動紀錄",
     "tabResearch": "網路研究摘要"
   },
+  "errorBoundary": {
+    "title": "畫面發生錯誤",
+    "message": "這個畫面遇到未預期的問題，已避免整個 App 關閉。可以再試一次，如果持續發生請回報這則訊息：",
+    "retry": "重試"
+  },
   "firebaseNotConfigured": {
     "title": "Firebase 未設定",
     "message": "請在 .env 設定 VITE_FIREBASE_* 環境變數後重新啟動 dev server。"

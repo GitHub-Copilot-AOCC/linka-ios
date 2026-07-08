@@ -23,8 +23,10 @@ function fromFirestore(id: string, data: Record<string, unknown>): Interaction {
   return {
     id,
     contactIds: (data.contactIds as string[]) ?? [],
-    type: data.type as Interaction['type'],
-    description: data.description as string,
+    // 舊資料可能沒有 type 欄位（schema 定案前寫入的紀錄），沒有預設值的話畫面渲染時對
+    // undefined 呼叫 .charAt() 會直接炸掉（見使用者回報：點進聯絡人詳情頁就跳出 App）。
+    type: (data.type as Interaction['type']) ?? 'meeting',
+    description: (data.description as string) ?? '',
     date: data.date as string,
     source: (data.source as Interaction['source']) ?? 'manual',
     rawInput: data.rawInput as string | undefined,

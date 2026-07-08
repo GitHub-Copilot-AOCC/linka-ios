@@ -57,7 +57,7 @@ export function ContactResearchSection({ uid, contact }: ContactResearchSectionP
                 {new Date(entry.createdAt).toLocaleString()}
               </Text>
               <Text variant="bodyMedium">{entry.summary}</Text>
-              {entry.sourceUrls.length > 0 && (
+              {(entry.sourceUrls ?? []).length > 0 && (
                 <View style={styles.sources}>
                   <Text variant="labelSmall">{t('contactResearch.sources')}</Text>
                   {entry.sourceUrls.map((url) => (

@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createNativeStackNavigator, type NativeStackScreenProps } from '@react-navigation/native-stack';
 import { PaperProvider, MD3LightTheme, ActivityIndicator } from 'react-native-paper';
 import { View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -22,6 +22,7 @@ import { DocumentImportScreen } from '@ui/screens/DocumentImportScreen';
 import { ImportContactsScreen } from '@ui/screens/ImportContactsScreen';
 import { SettingsScreen } from '@ui/screens/SettingsScreen';
 import { OperationLogScreen } from '@ui/screens/OperationLogScreen';
+import { ErrorBoundary } from '@ui/components/ErrorBoundary';
 import type { ContactsStackParamList } from '@ui/navigation/ContactsStackParamList';
 import type { SettingsStackParamList } from '@ui/navigation/SettingsStackParamList';
 
@@ -41,13 +42,25 @@ const Tab = createBottomTabNavigator();
 const ContactsStack = createNativeStackNavigator<ContactsStackParamList>();
 const SettingsStack = createNativeStackNavigator<SettingsStackParamList>();
 
+// 詳情頁底下有互動紀錄/AI 建議話題/AI 研究摘要三個區塊，會讀取既有真實資料——舊資料的欄位
+// 形狀不一定完全符合目前的型別假設（見使用者回報：點進聯絡人詳情頁就跳出 App）。個別欄位已經
+// 補上防禦，這裡再包一層 Error Boundary 當最後一道防線：即使還有沒想到的例外，畫面只會顯示
+// 錯誤訊息，不會讓整個 App 被 RN 判定 fatal 直接關閉。
+function ContactDetailScreenWithBoundary(props: NativeStackScreenProps<ContactsStackParamList, 'ContactDetail'>) {
+  return (
+    <ErrorBoundary>
+      <ContactDetailScreen {...props} />
+    </ErrorBoundary>
+  );
+}
+
 /** 對應 Web 版的 /contacts、/contacts/:contactId 路由（見 spec.md §11.5）。 */
 function ContactsNavigator() {
   const { t } = useTranslation();
   return (
     <ContactsStack.Navigator>
       <ContactsStack.Screen name="ContactsList" component={ContactsListScreen} options={{ title: t('contacts.title') }} />
-      <ContactsStack.Screen name="ContactDetail" component={ContactDetailScreen} options={{ title: t('editContact.title', { name: '' }) }} />
+      <ContactsStack.Screen name="ContactDetail" component={ContactDetailScreenWithBoundary} options={{ title: t('editContact.title', { name: '' }) }} />
       <ContactsStack.Screen name="AddContact" component={AddContactScreen} options={{ title: t('contacts.addContact') }} />
       <ContactsStack.Screen name="TagsManager" component={TagsManagerScreen} options={{ title: t('tags.title') }} />
       <ContactsStack.Screen name="BusinessCardScan" component={BusinessCardScanScreen} options={{ title: t('businessCard.title') }} />

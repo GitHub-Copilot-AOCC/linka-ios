@@ -44,7 +44,12 @@ function fromFirestore(id: string, data: Record<string, unknown>): Contact {
     photos: (data.photos as Contact['photos']) ?? undefined,
     nextContactReminder: data.nextContactReminder as string | undefined,
     source: data.source as Contact['source'],
-    researchLog: (data.researchLog as Contact['researchLog']) ?? undefined,
+    // 較早期寫入的研究紀錄可能沒有 sourceUrls 欄位，沒有預設值的話畫面渲染時對 undefined
+    // 呼叫 .length 會直接炸掉（見使用者回報：點進聯絡人詳情頁就跳出 App）。
+    researchLog: (data.researchLog as ResearchEntry[] | undefined)?.map((entry) => ({
+      ...entry,
+      sourceUrls: entry.sourceUrls ?? [],
+    })),
     createdAt: toMillis(data.createdAt),
     updatedAt: toMillis(data.updatedAt),
   };

@@ -15,6 +15,11 @@
     "tabInteractions": "Interactions",
     "tabResearch": "Web Research"
   },
+  "errorBoundary": {
+    "title": "Something went wrong",
+    "message": "This screen hit an unexpected problem, so the app stayed open instead of closing. You can try again, or report this message if it keeps happening:",
+    "retry": "Retry"
+  },
   "firebaseNotConfigured": {
     "title": "Firebase not configured",
     "message": "Please set VITE_FIREBASE_* environment variables in .env and restart the dev server."
