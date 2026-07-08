@@ -4,7 +4,7 @@ import { Text, List, IconButton, SegmentedButtons, TextInput, Button, HelperText
 import { useTranslation } from 'react-i18next';
 import type { InteractionType } from '@domain/interaction';
 import { todayDateString } from '@domain/interaction';
-import { useInteractionsStore } from '@ui/store/interactionsStore';
+import { useInteractionsStore, EMPTY_INTERACTIONS } from '@ui/store/interactionsStore';
 
 interface ContactInteractionsSectionProps {
   uid: string;
@@ -18,7 +18,7 @@ interface ContactInteractionsSectionProps {
  */
 export function ContactInteractionsSection({ uid, contactId, contactName }: ContactInteractionsSectionProps) {
   const { t } = useTranslation();
-  const interactions = useInteractionsStore((s) => s.byContactId[contactId] ?? []);
+  const interactions = useInteractionsStore((s) => s.byContactId[contactId] ?? EMPTY_INTERACTIONS);
   const subscribe = useInteractionsStore((s) => s.subscribe);
   const add = useInteractionsStore((s) => s.add);
   const remove = useInteractionsStore((s) => s.remove);

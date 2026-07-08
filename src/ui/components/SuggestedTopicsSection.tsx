@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import type { Contact } from '@domain/contact';
 import type { TopicSuggestion } from '@domain/topicSuggestion';
 import { suggestTopics, GeminiServiceError } from '@services/geminiService';
-import { useInteractionsStore } from '@ui/store/interactionsStore';
+import { useInteractionsStore, EMPTY_INTERACTIONS } from '@ui/store/interactionsStore';
 
 interface SuggestedTopicsSectionProps {
   contact: Contact;
@@ -14,7 +14,7 @@ interface SuggestedTopicsSectionProps {
 /** AI 建議話題（見 spec.md §5.5 項目4）：既有 geminiProxy 的 getSuggestedTopics action，不需改後端。 */
 export function SuggestedTopicsSection({ contact }: SuggestedTopicsSectionProps) {
   const { t } = useTranslation();
-  const interactions = useInteractionsStore((s) => s.byContactId[contact.id] ?? []);
+  const interactions = useInteractionsStore((s) => s.byContactId[contact.id] ?? EMPTY_INTERACTIONS);
   const [suggestions, setSuggestions] = useState<TopicSuggestion[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
