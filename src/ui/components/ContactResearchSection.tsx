@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { View, StyleSheet, Linking } from 'react-native';
-import { Text, Button, Card, Checkbox, ActivityIndicator, HelperText, useTheme } from 'react-native-paper';
+import { Text, Button, Card, Checkbox, IconButton, ActivityIndicator, HelperText, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import type { Contact } from '@domain/contact';
 import { createResearchEntry, sortResearchLogNewestFirst, type ExtractedContactFields } from '@domain/contactResearch';
 import { researchContactProfile, GeminiServiceError } from '@services/geminiService';
-import { appendResearchEntry, updateContact } from '@data/contactsRepository';
+import { appendResearchEntry, removeResearchEntry, updateContact } from '@data/contactsRepository';
 import { FadeInView } from '@ui/components/FadeInView';
 import { GroupedSection } from '@ui/components/GroupedSection';
 import { GroupedRow } from '@ui/components/GroupedRow';
@@ -82,6 +82,10 @@ export function ContactResearchSection({ uid, contact }: ContactResearchSectionP
     });
   }
 
+  async function handleDeleteEntry(entryId: string) {
+    await removeResearchEntry(uid, contact.id, contact.researchLog ?? [], entryId);
+  }
+
   async function handleApplyFields() {
     if (!pendingFields) return;
     setApplying(true);
@@ -147,10 +151,13 @@ export function ContactResearchSection({ uid, contact }: ContactResearchSectionP
         researchLog.map((entry) => (
           <FadeInView key={entry.id}>
             <Card style={styles.card}>
+              <Card.Title
+                title={new Date(entry.createdAt).toLocaleString()}
+                titleVariant="labelSmall"
+                titleStyle={{ color: theme.colors.onSurfaceVariant }}
+                right={() => <IconButton icon="delete" size={18} onPress={() => handleDeleteEntry(entry.id)} />}
+              />
               <Card.Content>
-                <Text variant="labelSmall" style={styles.date}>
-                  {new Date(entry.createdAt).toLocaleString()}
-                </Text>
                 <Text variant="bodyMedium">{entry.summary}</Text>
                 {(entry.sourceUrls ?? []).length > 0 && (
                   <View style={styles.sources}>
@@ -183,7 +190,6 @@ const styles = StyleSheet.create({
   fieldsActionsRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: 4, padding: 8 },
   empty: { color: '#666', marginBottom: 8 },
   card: { marginBottom: 8 },
-  date: { color: '#666', marginBottom: 4 },
   sources: { marginTop: 8 },
   link: { color: '#5B5FEF', marginTop: 2 },
   button: { marginTop: 8 },

@@ -151,6 +151,17 @@ export async function appendResearchEntry(
   await updateContact(uid, contactId, { researchLog: [...existingLog, entry] });
 }
 
+/** 刪除一筆研究紀錄（見使用者回報：累積的搜尋結果太佔畫面空間，需要能個別刪除）。 */
+export async function removeResearchEntry(
+  uid: string,
+  contactId: string,
+  existingLog: ResearchEntry[],
+  entryId: string
+): Promise<void> {
+  const remaining = existingLog.filter((entry) => entry.id !== entryId);
+  await updateContact(uid, contactId, { researchLog: remaining.length > 0 ? remaining : undefined });
+}
+
 /** 刪除一張已上傳的聯絡人照片（Storage 檔案 + Firestore 陣列項目）。 */
 export async function removeContactPhoto(
   uid: string,
