@@ -166,7 +166,7 @@ export function ContactDetailScreen({ route, navigation }: Props) {
                   <Avatar.Image size={64} source={{ uri: photo.url }} />
                   <IconButton
                     icon="close"
-                    size={14}
+                    size={20}
                     mode="contained"
                     style={styles.photoRemove}
                     onPress={() => handleRemovePhoto(photo)}
@@ -228,9 +228,14 @@ const styles = StyleSheet.create({
   container: { padding: 16, paddingBottom: 40 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   section: { marginBottom: 16 },
-  photoRowOverride: { alignItems: 'flex-start', minHeight: 0 },
+  // paddingVertical 明確加大（蓋掉 GroupedRow 預設的 10），給下面負值定位的移除按鈕
+  // 留出足夠空間——原本只有 10px，移除按鈕又是 top:-8，等於快要貼到卡片邊緣，容易被
+  // GroupedSection 卡片的圓角裁切擋住（見使用者回報：上傳照片後無法取消/移除照片）。
+  photoRowOverride: { alignItems: 'flex-start', minHeight: 0, paddingVertical: 16 },
   photoRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, alignItems: 'center', flex: 1 },
-  photoWrap: { position: 'relative' },
-  photoRemove: { position: 'absolute', top: -8, right: -8, margin: 0 },
+  photoWrap: { position: 'relative', marginTop: 8, marginRight: 4 },
+  // 移除按鈕加大到 20（原本 14 太小，實際熱區不到 Apple 建議的 44pt 最低標準，很難點到），
+  // 負值位移也縮小到 -6，配合上面 photoWrap 的 margin，確保不會被卡片裁切掉。
+  photoRemove: { position: 'absolute', top: -6, right: -6, margin: 0 },
   inlineInput: { flex: 1, backgroundColor: 'transparent' },
 });
