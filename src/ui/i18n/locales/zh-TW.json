@@ -111,7 +111,6 @@
     "facebook": "Facebook",
     "twitter": "Twitter",
     "notes": "備註",
-    "preferencesLabel": "偏好",
     "tags": "標籤",
     "maxPhotosError": "最多只能有 {{max}} 張照片，請先移除一張",
     "contactInfoSection": "聯絡方式",

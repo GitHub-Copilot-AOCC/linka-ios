@@ -149,7 +149,7 @@ export function ContactFormFields({ values, onChange, nameError }: ContactFormFi
         </GroupedRow>
         <GroupedRow icon="note.text" iconBackgroundColor="#A788FA">
           <TextInput
-            label={t('editContact.preferencesLabel')}
+            label={t('editContact.notes')}
             value={values.notes}
             onChangeText={(v) => set('notes', v)}
             multiline
