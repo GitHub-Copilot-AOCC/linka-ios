@@ -66,7 +66,13 @@ export function ContactDetailScreen({ route, navigation }: Props) {
       setReminderDate(contact.nextContactReminder ?? '');
       setTagIds(contact.tags ?? []);
     }
-  }, [contact?.id]);
+    // 只依賴 contact?.id 的話，這個 effect 只有在「換到另一位聯絡人」時才會重新執行——
+    // 同一位聯絡人的欄位在背景被更新（例如網路研究套用了職稱/LinkedIn）不會觸發，表單
+    // 顯示的 values 會停留在舊值,要離開再進來才會看到新值（見使用者回報：按套用後想
+    // 確認欄位有沒有真的更新）。加 updatedAt 進依賴：只要 updateContact 寫入過（不管是
+    // 這個畫面自己的儲存，還是研究摘要套用），updatedAt 一定會變，藉此偵測「資料真的
+    // 有變」，讓表單重新同步成最新值。
+  }, [contact?.id, contact?.updatedAt]);
 
   async function handleSave() {
     if (!uid || !values) return;
