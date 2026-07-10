@@ -1,11 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
-import { Button, HelperText, Text } from 'react-native-paper';
+import { Button, HelperText } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { ContactsStackParamList } from '@ui/navigation/ContactsStackParamList';
 import { ContactFormFields, EMPTY_CONTACT_FORM_VALUES } from '@ui/components/ContactFormFields';
 import { TagMultiSelect } from '@ui/components/TagMultiSelect';
+import { GroupedSection } from '@ui/components/GroupedSection';
+import { GroupedRow } from '@ui/components/GroupedRow';
 import { useContactsStore } from '@ui/store/contactsStore';
 import { useAuthStore } from '@ui/store/authStore';
 import { useTagsStore } from '@ui/store/tagsStore';
@@ -49,22 +51,33 @@ export function AddContactScreen({ navigation }: Props) {
     }
   }
 
+  // 「儲存」移到 nav bar 右上角（視覺重新設計，跟 ContactDetailScreen 一致，見使用者提供的
+  // mockup + iOS 原生慣例）。
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <Button onPress={handleSave} loading={saving} disabled={saving}>
+          {t('common.save')}
+        </Button>
+      ),
+    });
+  }, [navigation, saving, values, tagIds, uid]);
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <ContactFormFields values={values} onChange={setValues} nameError={error ?? undefined} />
-      <Text variant="titleMedium" style={styles.tagsTitle}>
-        {t('editContact.tags')}
-      </Text>
-      <TagMultiSelect selectedIds={tagIds} onChange={setTagIds} />
+      <GroupedSection title={t('editContact.tags')} style={styles.section}>
+        <GroupedRow style={styles.tagsRowOverride}>
+          <TagMultiSelect selectedIds={tagIds} onChange={setTagIds} />
+        </GroupedRow>
+      </GroupedSection>
       {error && <HelperText type="error">{error}</HelperText>}
-      <Button mode="contained" onPress={handleSave} loading={saving} disabled={saving}>
-        {t('common.save')}
-      </Button>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 16 },
-  tagsTitle: { marginBottom: 8 },
+  container: { padding: 16, paddingBottom: 40 },
+  section: { marginBottom: 16 },
+  tagsRowOverride: { alignItems: 'flex-start', minHeight: 0 },
 });

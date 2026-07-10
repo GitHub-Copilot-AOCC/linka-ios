@@ -6,6 +6,7 @@ import type { Contact } from '@domain/contact';
 import type { TopicSuggestion } from '@domain/topicSuggestion';
 import { suggestTopics, GeminiServiceError } from '@services/geminiService';
 import { useInteractionsStore, EMPTY_INTERACTIONS } from '@ui/store/interactionsStore';
+import { FadeInView } from '@ui/components/FadeInView';
 
 interface SuggestedTopicsSectionProps {
   contact: Contact;
@@ -40,14 +41,16 @@ export function SuggestedTopicsSection({ contact }: SuggestedTopicsSectionProps)
       <Text style={styles.description}>{t('suggestedTopics.description')}</Text>
       {error && <HelperText type="error">{error}</HelperText>}
       {suggestions?.map((s, i) => (
-        <Card key={i} style={styles.card}>
-          <Card.Content>
-            <Text variant="bodyMedium">{s.topic}</Text>
-            <Text variant="bodySmall" style={styles.reason}>
-              {s.reason}
-            </Text>
-          </Card.Content>
-        </Card>
+        <FadeInView key={i}>
+          <Card style={styles.card}>
+            <Card.Content>
+              <Text variant="bodyMedium">{s.topic}</Text>
+              <Text variant="bodySmall" style={styles.reason}>
+                {s.reason}
+              </Text>
+            </Card.Content>
+          </Card>
+        </FadeInView>
       ))}
       {suggestions?.length === 0 && <Text>{t('suggestedTopics.empty')}</Text>}
       <Button mode="outlined" onPress={handleGenerate} loading={loading} disabled={loading} style={styles.button}>

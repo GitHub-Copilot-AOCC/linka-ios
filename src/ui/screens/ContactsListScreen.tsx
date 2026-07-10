@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { FlatList, View, StyleSheet } from 'react-native';
-import { Text, Avatar, List, FAB, Searchbar, SegmentedButtons, Chip, IconButton } from 'react-native-paper';
+import { Text, Avatar, List, FAB, IconButton, Searchbar, SegmentedButtons, Chip, Menu, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { ContactsStackParamList } from '@ui/navigation/ContactsStackParamList';
@@ -9,9 +9,13 @@ import { useContactsStore } from '@ui/store/contactsStore';
 import { useTagsStore } from '@ui/store/tagsStore';
 import { useAuthStore } from '@ui/store/authStore';
 import { avatarColorFor } from '@ui/theme/avatarPalette';
-import { tagStyleFor } from '@ui/theme/tagPalette';
+import { SFIcon } from '@ui/components/AppIcon';
 
 type Props = NativeStackScreenProps<ContactsStackParamList, 'ContactsList'>;
+
+// 單行顯示的標籤上限（含「全部」），超過的收進「更多」選單（視覺重新設計，見使用者提供
+// 的 mockup：單行 pill + 更多 chevron，不是像之前那樣直接換行顯示全部）。
+const VISIBLE_TAG_LIMIT = 5;
 
 /** 聯絡人列表（見 spec.md §5.2）：搜尋/排序/標籤篩選 + 點擊進詳情頁 + FAB 新增。 */
 export function ContactsListScreen({ navigation }: Props) {
@@ -20,10 +24,12 @@ export function ContactsListScreen({ navigation }: Props) {
   const tags = useTagsStore((s) => s.tags);
   const subscribeTags = useTagsStore((s) => s.subscribe);
   const { t } = useTranslation();
+  const theme = useTheme();
 
   const [keyword, setKeyword] = useState('');
   const [sortBy, setSortBy] = useState<ContactSortBy>('name');
   const [activeTagId, setActiveTagId] = useState<string | null>(null);
+  const [moreMenuVisible, setMoreMenuVisible] = useState(false);
 
   useEffect(() => {
     if (!uid) return;
@@ -40,6 +46,16 @@ export function ContactsListScreen({ navigation }: Props) {
     sortBy
   );
 
+  const visibleTags = tags.slice(0, VISIBLE_TAG_LIMIT - 1);
+  const overflowTags = tags.slice(VISIBLE_TAG_LIMIT - 1);
+
+  function tagChipStyle(active: boolean) {
+    return {
+      style: [styles.tagChip, { backgroundColor: active ? theme.colors.primaryContainer : theme.colors.surfaceVariant }],
+      textStyle: [styles.tagChipText, { color: active ? theme.colors.primary : theme.colors.onSurfaceVariant }],
+    };
+  }
+
   return (
     <View style={styles.container}>
       {contacts.length > 0 && (
@@ -50,6 +66,7 @@ export function ContactsListScreen({ navigation }: Props) {
               value={keyword}
               onChangeText={setKeyword}
               style={styles.searchbar}
+              icon={() => <SFIcon name="magnifyingglass" size={18} color={theme.colors.onSurfaceVariant} />}
             />
             <IconButton icon="camera-outline" onPress={() => navigation.navigate('BusinessCardScan')} />
             <IconButton icon="file-upload-outline" onPress={() => navigation.navigate('DocumentImport')} />
@@ -66,35 +83,44 @@ export function ContactsListScreen({ navigation }: Props) {
             ]}
           />
           {tags.length > 0 && (
-            // 見 spec.md §5.2：Web 版標籤列會自動換行、一次顯示全部（見 Web repo
-            // ContactsListScreen.tsx 的 flexWrap: 'wrap'），不是橫向滑動單行——之前用橫向
-            // FlatList 會把大部分標籤捲到畫面外看不到，改成跟 TagMultiSelect 一樣的換行版面。
             <View style={styles.tagFilterRow}>
-              <Chip
-                icon="view-grid-outline"
-                selected={activeTagId === null}
-                onPress={() => setActiveTagId(null)}
-                style={styles.tagChip}
-                textStyle={styles.tagChipText}
-              >
+              <Chip selected={activeTagId === null} onPress={() => setActiveTagId(null)} {...tagChipStyle(activeTagId === null)}>
                 {t('contacts.allTags')}
               </Chip>
-              {tags.map((tag) => {
-                const style = tagStyleFor(tag.id);
+              {visibleTags.map((tag) => {
                 const active = activeTagId === tag.id;
                 return (
-                  <Chip
-                    key={tag.id}
-                    icon={style.icon}
-                    selected={active}
-                    onPress={() => setActiveTagId(active ? null : tag.id)}
-                    style={[styles.tagChip, { backgroundColor: style.bg }]}
-                    textStyle={[styles.tagChipText, { color: style.fg }]}
-                  >
+                  <Chip key={tag.id} selected={active} onPress={() => setActiveTagId(active ? null : tag.id)} {...tagChipStyle(active)}>
                     {tag.name}
                   </Chip>
                 );
               })}
+              {overflowTags.length > 0 && (
+                <Menu
+                  visible={moreMenuVisible}
+                  onDismiss={() => setMoreMenuVisible(false)}
+                  anchor={
+                    <Chip
+                      onPress={() => setMoreMenuVisible(true)}
+                      icon={() => <SFIcon name="chevron.down" size={14} color={theme.colors.onSurfaceVariant} />}
+                      {...tagChipStyle(overflowTags.some((tag) => tag.id === activeTagId))}
+                    >
+                      {t('contacts.moreTags')}
+                    </Chip>
+                  }
+                >
+                  {overflowTags.map((tag) => (
+                    <Menu.Item
+                      key={tag.id}
+                      title={tag.name}
+                      onPress={() => {
+                        setActiveTagId(activeTagId === tag.id ? null : tag.id);
+                        setMoreMenuVisible(false);
+                      }}
+                    />
+                  ))}
+                </Menu>
+              )}
             </View>
           )}
         </>
@@ -115,13 +141,19 @@ export function ContactsListScreen({ navigation }: Props) {
               left={() => (
                 <Avatar.Text size={40} label={item.name.slice(0, 1)} style={{ backgroundColor: avatarColorFor(item.id) }} />
               )}
+              right={() => (
+                <SFIcon
+                  name={item.importance === 5 ? 'star.fill' : 'star'}
+                  size={18}
+                  color={item.importance === 5 ? '#FFD60A' : theme.colors.onSurfaceVariant}
+                />
+              )}
               onPress={() => navigation.navigate('ContactDetail', { contactId: item.id })}
             />
           )}
         />
       )}
       <FAB icon="creation" style={styles.fabQuickCapture} onPress={() => navigation.navigate('QuickCapture')} />
-      <FAB icon="plus" style={styles.fab} onPress={() => navigation.navigate('AddContact')} />
     </View>
   );
 }
@@ -137,6 +169,5 @@ const styles = StyleSheet.create({
   // （見使用者截圖回報：「客戶」兩個字下緣被切掉），明確加大行高留出足夠空間。
   tagChipText: { lineHeight: 22 },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
-  fab: { position: 'absolute', right: 16, bottom: 16 },
-  fabQuickCapture: { position: 'absolute', right: 16, bottom: 80 },
+  fabQuickCapture: { position: 'absolute', right: 16, bottom: 16, backgroundColor: '#A788FA' },
 });

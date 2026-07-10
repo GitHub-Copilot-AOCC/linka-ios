@@ -6,6 +6,7 @@ import type { Contact } from '@domain/contact';
 import { createResearchEntry, sortResearchLogNewestFirst } from '@domain/contactResearch';
 import { researchContactProfile, GeminiServiceError } from '@services/geminiService';
 import { appendResearchEntry } from '@data/contactsRepository';
+import { FadeInView } from '@ui/components/FadeInView';
 
 interface ContactResearchSectionProps {
   uid: string;
@@ -51,24 +52,26 @@ export function ContactResearchSection({ uid, contact }: ContactResearchSectionP
 
       {!loading &&
         researchLog.map((entry) => (
-          <Card key={entry.id} style={styles.card}>
-            <Card.Content>
-              <Text variant="labelSmall" style={styles.date}>
-                {new Date(entry.createdAt).toLocaleString()}
-              </Text>
-              <Text variant="bodyMedium">{entry.summary}</Text>
-              {(entry.sourceUrls ?? []).length > 0 && (
-                <View style={styles.sources}>
-                  <Text variant="labelSmall">{t('contactResearch.sources')}</Text>
-                  {entry.sourceUrls.map((url) => (
-                    <Text key={url} style={styles.link} onPress={() => Linking.openURL(url)}>
-                      {url}
-                    </Text>
-                  ))}
-                </View>
-              )}
-            </Card.Content>
-          </Card>
+          <FadeInView key={entry.id}>
+            <Card style={styles.card}>
+              <Card.Content>
+                <Text variant="labelSmall" style={styles.date}>
+                  {new Date(entry.createdAt).toLocaleString()}
+                </Text>
+                <Text variant="bodyMedium">{entry.summary}</Text>
+                {(entry.sourceUrls ?? []).length > 0 && (
+                  <View style={styles.sources}>
+                    <Text variant="labelSmall">{t('contactResearch.sources')}</Text>
+                    {entry.sourceUrls.map((url) => (
+                      <Text key={url} style={styles.link} onPress={() => Linking.openURL(url)}>
+                        {url}
+                      </Text>
+                    ))}
+                  </View>
+                )}
+              </Card.Content>
+            </Card>
+          </FadeInView>
         ))}
 
       <Button mode="contained" onPress={handleSearch} disabled={loading} style={styles.button}>

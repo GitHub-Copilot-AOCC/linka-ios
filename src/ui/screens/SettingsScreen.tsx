@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ScrollView, View, StyleSheet } from 'react-native';
-import { Text, List, SegmentedButtons, ProgressBar, Button, Divider, HelperText } from 'react-native-paper';
+import { Text, SegmentedButtons, ProgressBar, Button, HelperText, Avatar, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { SettingsStackParamList } from '@ui/navigation/SettingsStackParamList';
@@ -10,15 +10,23 @@ import { useContactsStore } from '@ui/store/contactsStore';
 import { useInteractionsStore } from '@ui/store/interactionsStore';
 import { useTagsStore } from '@ui/store/tagsStore';
 import { SyncStatusChip } from '@ui/components/SyncStatusChip';
+import { GroupedSection } from '@ui/components/GroupedSection';
+import { GroupedRow } from '@ui/components/GroupedRow';
+import { avatarColorFor } from '@ui/theme/avatarPalette';
 import { exportContactsToExcel } from '@platform/exportContacts';
 
 type Props = NativeStackScreenProps<SettingsStackParamList, 'SettingsMain'>;
 
-/** 設定畫面：帳號資訊、同步狀態、AI 用量、操作歷史入口、語言切換、資料匯出、登出（見 spec.md §11.2、§3、§5.12）。 */
+/**
+ * 設定畫面：帳號資訊、同步狀態、AI 用量、操作歷史入口、語言切換、資料匯出、登出
+ * （見 spec.md §11.2、§3、§5.12）。視覺重新設計：改用 GroupedSection/GroupedRow，
+ * 加一列唯讀個人資料（見假設 2：只綁定既有 authStore 資料，不導向任何新畫面）。
+ */
 export function SettingsScreen({ navigation }: Props) {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const { t, i18n } = useTranslation();
+  const theme = useTheme();
   const { quota, subscribe } = useUsageQuotaStore();
   const { contacts, subscribe: subscribeContacts } = useContactsStore();
   const { all: interactions, subscribeAll: subscribeInteractions } = useInteractionsStore();
@@ -85,89 +93,94 @@ export function SettingsScreen({ navigation }: Props) {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text variant="headlineSmall" style={styles.title}>
-        {t('settings.title')}
-      </Text>
-
-      <List.Item title={t('settings.account')} description={user.email} />
-      <Divider />
-
-      <View style={styles.row}>
-        <Text style={styles.rowLabel}>{t('settings.language')}</Text>
-        <SegmentedButtons
-          value={i18n.language}
-          onValueChange={(v) => i18n.changeLanguage(v)}
-          buttons={[
-            { value: 'zh-TW', label: '中文' },
-            { value: 'en', label: 'EN' },
-          ]}
+      <View style={styles.profileRow}>
+        <Avatar.Text
+          size={56}
+          label={(user.displayName ?? user.email ?? '?').charAt(0)}
+          style={{ backgroundColor: avatarColorFor(user.uid) }}
         />
-      </View>
-      <Divider />
-
-      <View style={styles.section}>
-        <Text style={styles.rowLabel}>{t('settings.aiUsage')}</Text>
-        {quota ? (
-          <>
-            <Text variant="bodySmall" style={styles.description}>
-              {t('settings.aiUsageCount', { used: quota.aiCallsUsed, limit: quota.aiCallsLimit })}
-            </Text>
-            <ProgressBar progress={Math.min(1, quota.aiCallsUsed / quota.aiCallsLimit)} style={styles.progress} />
-          </>
-        ) : (
-          <Text variant="bodySmall" style={styles.description}>
-            {t('settings.aiUsageUnavailable')}
+        <View style={styles.profileInfo}>
+          <Text variant="titleLarge" numberOfLines={1}>
+            {user.displayName ?? t('settings.account')}
           </Text>
-        )}
-      </View>
-      <Divider />
-
-      <View style={styles.row}>
-        <Text style={styles.rowLabel}>{t('settings.syncStatus')}</Text>
-        <SyncStatusChip />
-      </View>
-      <Divider />
-
-      <List.Item
-        title={t('settings.operationLog')}
-        right={() => (
-          <Button onPress={() => navigation.navigate('OperationLog')}>{t('settings.view')}</Button>
-        )}
-      />
-      <Divider />
-
-      <View style={styles.section}>
-        <Text style={styles.rowLabel}>{t('settings.exportContacts')}</Text>
-        <Text variant="bodySmall" style={styles.description}>
-          {t('settings.exportDescription')}
-        </Text>
-        {exportError && <HelperText type="error">{exportError}</HelperText>}
-        <Button
-          mode="outlined"
-          onPress={handleExport}
-          loading={exporting}
-          disabled={exporting || contacts.length === 0}
-          style={styles.exportButton}
-        >
-          {t('settings.exportButton')}
-        </Button>
+          <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }} numberOfLines={1}>
+            {user.email}
+          </Text>
+        </View>
       </View>
 
-      <Button mode="outlined" textColor="#ba1a1a" onPress={() => logout()} style={styles.logoutButton}>
-        {t('settings.logout')}
-      </Button>
+      <GroupedSection style={styles.section}>
+        <GroupedRow icon="globe" iconBackgroundColor="#6C63FF" label={t('settings.language')}>
+          <SegmentedButtons
+            value={i18n.language}
+            onValueChange={(v) => i18n.changeLanguage(v)}
+            buttons={[
+              { value: 'zh-TW', label: '中文' },
+              { value: 'en', label: 'EN' },
+            ]}
+          />
+        </GroupedRow>
+      </GroupedSection>
+
+      <GroupedSection style={styles.section}>
+        <GroupedRow icon="sparkles" iconBackgroundColor="#A788FA">
+          <View style={styles.usageRow}>
+            <Text>{t('settings.aiUsage')}</Text>
+            {quota ? (
+              <>
+                <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
+                  {t('settings.aiUsageCount', { used: quota.aiCallsUsed, limit: quota.aiCallsLimit })}
+                </Text>
+                <ProgressBar progress={Math.min(1, quota.aiCallsUsed / quota.aiCallsLimit)} style={styles.progress} />
+              </>
+            ) : (
+              <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
+                {t('settings.aiUsageUnavailable')}
+              </Text>
+            )}
+          </View>
+        </GroupedRow>
+        <GroupedRow icon="icloud.fill" iconBackgroundColor="#34C759" label={t('settings.syncStatus')} value={<SyncStatusChip />} />
+        <GroupedRow
+          icon="clock.arrow.circlepath"
+          iconBackgroundColor="#8E8E93"
+          label={t('settings.operationLog')}
+          onPress={() => navigation.navigate('OperationLog')}
+          value={<Text style={{ color: theme.colors.primary }}>{t('settings.view')}</Text>}
+        />
+      </GroupedSection>
+
+      <GroupedSection footer={t('settings.exportDescription')} style={styles.section}>
+        <GroupedRow icon="square.and.arrow.up" iconBackgroundColor="#FF9F0A">
+          <View style={styles.exportRow}>
+            <Text>{t('settings.exportContacts')}</Text>
+            <Button
+              mode="text"
+              compact
+              onPress={handleExport}
+              loading={exporting}
+              disabled={exporting || contacts.length === 0}
+            >
+              {t('settings.exportButton')}
+            </Button>
+          </View>
+        </GroupedRow>
+      </GroupedSection>
+      {exportError && <HelperText type="error">{exportError}</HelperText>}
+
+      <GroupedSection style={styles.section}>
+        <GroupedRow icon="rectangle.portrait.and.arrow.right" label={t('settings.logout')} destructive onPress={() => logout()} />
+      </GroupedSection>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 16 },
-  title: { marginBottom: 16 },
-  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12 },
-  rowLabel: {},
-  section: { paddingVertical: 12 },
-  description: { color: '#666', marginBottom: 4 },
-  progress: { height: 6, borderRadius: 3 },
-  exportButton: { marginTop: 8, alignSelf: 'flex-start' },
-  logoutButton: { marginTop: 24 },
+  container: { padding: 16, paddingBottom: 40 },
+  profileRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 24, paddingHorizontal: 4 },
+  profileInfo: { flex: 1, minWidth: 0 },
+  section: { marginBottom: 16 },
+  usageRow: { flex: 1, gap: 4 },
+  progress: { height: 6, borderRadius: 3, marginTop: 2 },
+  exportRow: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
 });

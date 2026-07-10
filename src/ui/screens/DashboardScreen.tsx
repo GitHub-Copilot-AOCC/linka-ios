@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { ScrollView, View, StyleSheet } from 'react-native';
-import { Text, List, Avatar, Button } from 'react-native-paper';
+import { Text, List, Avatar, IconButton, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import {
   isReminderDue,
@@ -13,15 +13,35 @@ import { useAuthStore } from '@ui/store/authStore';
 import { useContactsStore } from '@ui/store/contactsStore';
 import { useInteractionsStore } from '@ui/store/interactionsStore';
 import { avatarColorFor } from '@ui/theme/avatarPalette';
+import { AISuggestionsPanel } from '@ui/components/AISuggestionsPanel';
+import { SFIcon } from '@ui/components/AppIcon';
+import { CARD_SHADOW } from '@ui/theme/theme';
+import type { SFSymbol } from 'sf-symbols-typescript';
+
+function greetingKey(hour: number): 'dashboard.greetingMorning' | 'dashboard.greetingAfternoon' | 'dashboard.greetingEvening' {
+  if (hour < 12) return 'dashboard.greetingMorning';
+  if (hour < 18) return 'dashboard.greetingAfternoon';
+  return 'dashboard.greetingEvening';
+}
+
+/** 距離 today 幾天（today 較新則為正數），用來算「最近 7 天內」的互動次數。 */
+function daysBefore(dateIso: string, today: string): number {
+  const a = new Date(`${today}T00:00:00.000Z`).getTime();
+  const b = new Date(`${dateIso}T00:00:00.000Z`).getTime();
+  return Math.floor((a - b) / 86400000);
+}
 
 /**
- * 首頁摘要（見 spec.md §5.4、§11.3）：手動提醒待辦 + 即將到來的生日 + 最近新增/互動，
- * 四個面板都遵循 Web 版「沒有資料就不顯示」原則。AI 主動提醒面板留給後續 Phase（需要
- * Cloud Function 產生的 AgentSuggestion，跟這裡純前端算的到期提醒是分開的兩個功能）。
+ * 首頁摘要（見 spec.md §5.4、§11.3）：視覺重新設計後改成「AI 建議 Hero 卡 + 今日摘要
+ * 2x2 統計格線 + 最近互動清單」，底下的資料來源跟 Phase 1 之前完全一樣，只是呈現方式
+ * 從清單改成統計卡（見 GroupedSection 附近的討論：不重寫功能，只換皮）。
  */
 export function DashboardScreen() {
   const { t } = useTranslation();
+  const theme = useTheme();
   const uid = useAuthStore((s) => s.user?.uid);
+  const displayName = useAuthStore((s) => s.user?.displayName);
+  const email = useAuthStore((s) => s.user?.email);
   const contacts = useContactsStore((s) => s.contacts);
   const subscribeContacts = useContactsStore((s) => s.subscribe);
   const allInteractions = useInteractionsStore((s) => s.all);
@@ -42,17 +62,88 @@ export function DashboardScreen() {
   const birthdays = upcomingBirthdays(contacts, today);
   const recent = recentContacts(contacts);
   const recentInter = recentInteractions(allInteractions);
+  const recentInteractionCount = allInteractions.filter((i) => {
+    const days = daysBefore(today, i.date);
+    return days >= 0 && days <= 7;
+  }).length;
   const contactLookup = new Map(contacts.map((c) => [c.id, c]));
+
+  const firstName = (displayName ?? email ?? '').split(/[\s@]/)[0];
+  const hour = new Date().getHours();
+
+  const stats: Array<{ icon: SFSymbol; color: string; title: string; count: number; unit: string }> = [
+    {
+      icon: 'person.crop.circle.badge.plus',
+      color: theme.colors.primary,
+      title: t('dashboard.newContactsStat'),
+      count: recent.length,
+      unit: t('dashboard.peopleCount', { count: recent.length }),
+    },
+    {
+      icon: 'bubble.left.and.bubble.right.fill',
+      color: theme.colors.secondary,
+      title: t('dashboard.recentInteractionsStat'),
+      count: recentInteractionCount,
+      unit: t('dashboard.interactionCount', { count: recentInteractionCount }),
+    },
+    {
+      icon: 'birthday.cake.fill',
+      color: theme.colors.tertiary,
+      title: t('dashboard.birthdaysStat'),
+      count: birthdays.length,
+      unit: t('dashboard.birthdayCount', { count: birthdays.length }),
+    },
+    {
+      icon: 'star.fill',
+      color: theme.colors.error,
+      title: t('dashboard.dueStat'),
+      count: dueContacts.length,
+      unit: t('dashboard.dueCount', { count: dueContacts.length }),
+    },
+  ];
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text variant="headlineSmall" style={styles.pageTitle}>
-        {t('dashboard.title')}
+      <View style={styles.headerRow}>
+        <View style={styles.headerText}>
+          <Text variant="headlineLarge">{t(greetingKey(hour), { name: firstName })}</Text>
+          <Text variant="bodyLarge" style={{ color: theme.colors.onSurfaceVariant }}>
+            {t('dashboard.aiReadySubtitle')}
+          </Text>
+        </View>
+        <IconButton icon="bell" size={22} />
+      </View>
+
+      <AISuggestionsPanel uid={uid ?? ''} />
+
+      <Text variant="titleLarge" style={styles.sectionTitle}>
+        {t('dashboard.todaySummary')}
       </Text>
+      <View style={styles.statsGrid}>
+        {stats.map((stat) => (
+          <View
+            key={stat.title}
+            style={[styles.statCard, { backgroundColor: theme.colors.surface, borderRadius: theme.roundness }, CARD_SHADOW]}
+          >
+            <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
+              {stat.title}
+            </Text>
+            <View style={styles.statValueRow}>
+              <SFIcon name={stat.icon} size={20} color={stat.color} />
+              <Text variant="headlineSmall" style={styles.statValue}>
+                {stat.count}
+              </Text>
+            </View>
+            <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
+              {stat.unit}
+            </Text>
+          </View>
+        ))}
+      </View>
 
       {dueContacts.length > 0 && (
         <View style={styles.section}>
-          <Text variant="titleMedium">{t('reminders.title')}</Text>
+          <Text variant="titleLarge">{t('reminders.title')}</Text>
           {dueContacts.map((c) => (
             <List.Item
               key={c.id}
@@ -64,37 +155,14 @@ export function DashboardScreen() {
         </View>
       )}
 
-      {birthdays.length > 0 && (
-        <View style={styles.section}>
-          <Text variant="titleMedium">{t('dashboard.upcomingBirthdaysTitle')}</Text>
-          {birthdays.map(({ contact, daysUntil }) => (
-            <List.Item
-              key={contact.id}
-              title={contact.name}
-              description={daysUntil === 0 ? t('dashboard.birthdayToday') : t('dashboard.daysUntilBirthday', { days: daysUntil })}
-              left={() => <Avatar.Text size={36} label={contact.name.slice(0, 1)} style={{ backgroundColor: avatarColorFor(contact.id) }} />}
-            />
-          ))}
-        </View>
-      )}
-
-      {recent.length > 0 && (
-        <View style={styles.section}>
-          <Text variant="titleMedium">{t('dashboard.recentContactsTitle')}</Text>
-          {recent.map((c) => (
-            <List.Item
-              key={c.id}
-              title={c.name}
-              description={c.company}
-              left={() => <Avatar.Text size={36} label={c.name.slice(0, 1)} style={{ backgroundColor: avatarColorFor(c.id) }} />}
-            />
-          ))}
-        </View>
-      )}
-
       {recentInter.length > 0 && (
         <View style={styles.section}>
-          <Text variant="titleMedium">{t('dashboard.recentInteractionsTitle')}</Text>
+          <View style={styles.sectionHeaderRow}>
+            <Text variant="titleLarge">{t('dashboard.recentInteractionsTitle')}</Text>
+            <Text variant="bodyMedium" style={{ color: theme.colors.primary }}>
+              {t('dashboard.viewAll')}
+            </Text>
+          </View>
           {recentInter.map((interaction) => {
             const names = interaction.contactIds
               .map((id) => contactLookup.get(id)?.name ?? t('common.deletedContact'))
@@ -111,15 +179,22 @@ export function DashboardScreen() {
       )}
 
       {dueContacts.length === 0 && birthdays.length === 0 && recent.length === 0 && recentInter.length === 0 && (
-        <Text style={styles.empty}>{t('dashboard.noReminders')}</Text>
+        <Text style={[styles.empty, { color: theme.colors.onSurfaceVariant }]}>{t('dashboard.noReminders')}</Text>
       )}
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 16 },
-  pageTitle: { marginBottom: 16 },
-  section: { marginBottom: 24 },
-  empty: { color: '#666' },
+  container: { padding: 16, paddingBottom: 100 },
+  headerRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 },
+  headerText: { flex: 1, gap: 4 },
+  sectionTitle: { marginTop: 20, marginBottom: 12 },
+  statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+  statCard: { width: '47%', padding: 16, gap: 4 },
+  statValueRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  statValue: { fontWeight: '700' },
+  section: { marginTop: 24 },
+  sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  empty: { marginTop: 24 },
 });

@@ -3,12 +3,14 @@ import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator, type NativeStackScreenProps } from '@react-navigation/native-stack';
-import { PaperProvider, MD3LightTheme, ActivityIndicator } from 'react-native-paper';
+import { PaperProvider, ActivityIndicator, IconButton } from 'react-native-paper';
 import { View } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
 import '@ui/i18n';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@ui/store/authStore';
+import { theme } from '@ui/theme/theme';
+import { AppIcon } from '@ui/components/AppIcon';
 import { LoginScreen } from '@ui/screens/LoginScreen';
 import { DashboardScreen } from '@ui/screens/DashboardScreen';
 import { ContactsListScreen } from '@ui/screens/ContactsListScreen';
@@ -25,18 +27,6 @@ import { OperationLogScreen } from '@ui/screens/OperationLogScreen';
 import { ErrorBoundary } from '@ui/components/ErrorBoundary';
 import type { ContactsStackParamList } from '@ui/navigation/ContactsStackParamList';
 import type { SettingsStackParamList } from '@ui/navigation/SettingsStackParamList';
-
-// 對應 spec.md §4：手機版沿用 Web 版同一套 Material 3 token（見 Web repo src/ui/theme/theme.ts
-// 的 PRIMARY 色），react-native-paper 的 theme 物件結構跟 MUI 不同，這裡先用最小可行的顏色覆寫，
-// 之後要抽成雙邊共用的 design token 檔案再細修。
-const theme = {
-  ...MD3LightTheme,
-  colors: {
-    ...MD3LightTheme.colors,
-    primary: '#5B5FEF',
-    secondary: '#FF9F43',
-  },
-};
 
 const Tab = createBottomTabNavigator();
 const ContactsStack = createNativeStackNavigator<ContactsStackParamList>();
@@ -59,7 +49,17 @@ function ContactsNavigator() {
   const { t } = useTranslation();
   return (
     <ContactsStack.Navigator>
-      <ContactsStack.Screen name="ContactsList" component={ContactsListScreen} options={{ title: t('contacts.title') }} />
+      <ContactsStack.Screen
+        name="ContactsList"
+        component={ContactsListScreen}
+        options={({ navigation }) => ({
+          title: t('contacts.title'),
+          headerLargeTitle: true,
+          // 「+」從原本浮動 FAB 移到 nav bar 右上角（視覺重新設計，見使用者提供的 mockup +
+          // iOS 原生慣例），畫面上只留「✨」快速記錄一個 FAB。
+          headerRight: () => <IconButton icon="plus" onPress={() => navigation.navigate('AddContact')} />,
+        })}
+      />
       <ContactsStack.Screen name="ContactDetail" component={ContactDetailScreenWithBoundary} options={{ title: t('editContact.title', { name: '' }) }} />
       <ContactsStack.Screen name="AddContact" component={AddContactScreen} options={{ title: t('contacts.addContact') }} />
       <ContactsStack.Screen name="TagsManager" component={TagsManagerScreen} options={{ title: t('tags.title') }} />
@@ -76,7 +76,11 @@ function SettingsNavigator() {
   const { t } = useTranslation();
   return (
     <SettingsStack.Navigator>
-      <SettingsStack.Screen name="SettingsMain" component={SettingsScreen} options={{ title: t('settings.title') }} />
+      <SettingsStack.Screen
+        name="SettingsMain"
+        component={SettingsScreen}
+        options={{ title: t('settings.title'), headerLargeTitle: true }}
+      />
       <SettingsStack.Screen name="OperationLog" component={OperationLogScreen} options={{ title: t('operationLog.title') }} />
     </SettingsStack.Navigator>
   );
@@ -99,8 +103,18 @@ function MainTabs() {
         tabBarIcon: ({ color, size, focused }) => {
           const base = TAB_ICONS[route.name];
           const name = focused ? base : `${base}-outline`;
-          return <MaterialCommunityIcons name={name as never} color={color} size={size} />;
+          return <AppIcon name={name} color={color} size={size} />;
         },
+        // 半透明毛玻璃 Tab Bar（見使用者提供的 mockup 規格：Apple Intelligence 風格），
+        // 底部導覽列本來就是浮在內容上，符合套用毛玻璃材質的前提。
+        tabBarStyle: { position: 'absolute' },
+        tabBarBackground: () => (
+          <BlurView
+            intensity={80}
+            tint="light"
+            style={{ flex: 1 }}
+          />
+        ),
       })}
     >
       <Tab.Screen name="Home" component={DashboardScreen} options={{ title: t('nav.home') }} />
@@ -128,10 +142,11 @@ export default function App() {
   }, [init]);
 
   return (
-    // react-native-paper 預設用 react-native-vector-icons 畫圖示，這個套件的字型檔在我們的
-    // expo prebuild 流程裡沒有正確連結進 iOS binary（真機截圖裡所有圖示都變成 "?" 方框）。
-    // 改成明確指定用 @expo/vector-icons——這套字型是 Expo 自己管理、保證會正確打包。
-    <PaperProvider theme={theme} settings={{ icon: (props) => <MaterialCommunityIcons {...props} /> }}>
+    // AppIcon 是一個混合 renderer：查得到 SF Symbol 對照就畫 SF Symbol（視覺重新設計，
+    // 見 sfSymbols.ts），查不到（react-native-paper 內建圖示、品牌 logo 等）就照舊退回
+    // @expo/vector-icons 的 MaterialCommunityIcons——這套字型是 Expo 自己管理、保證會
+    // 正確打包進 iOS binary（先前真機截圖回報過圖示變成 "?" 方框，就是字型沒打包的問題）。
+    <PaperProvider theme={theme} settings={{ icon: AppIcon }}>
       <NavigationContainer>
         {initializing ? (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
