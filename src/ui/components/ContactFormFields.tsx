@@ -10,6 +10,9 @@ export interface ContactFormValues {
   company: string;
   phone: string;
   email: string;
+  linkedin: string;
+  facebook: string;
+  twitter: string;
   birthday: string;
   notes: string;
 }
@@ -92,6 +95,45 @@ export function ContactFormFields({ values, onChange, nameError }: ContactFormFi
         </GroupedRow>
       </GroupedSection>
 
+      <GroupedSection title={t('editContact.socialSection')} style={styles.section}>
+        <GroupedRow icon="link" iconBackgroundColor="#0A66C2">
+          <TextInput
+            label={t('editContact.linkedin')}
+            value={values.linkedin}
+            onChangeText={(v) => set('linkedin', v)}
+            autoCapitalize="none"
+            style={styles.inlineInput}
+            underlineColor="transparent"
+            activeUnderlineColor="transparent"
+            dense
+          />
+        </GroupedRow>
+        <GroupedRow icon="link" iconBackgroundColor="#1877F2">
+          <TextInput
+            label={t('editContact.facebook')}
+            value={values.facebook}
+            onChangeText={(v) => set('facebook', v)}
+            autoCapitalize="none"
+            style={styles.inlineInput}
+            underlineColor="transparent"
+            activeUnderlineColor="transparent"
+            dense
+          />
+        </GroupedRow>
+        <GroupedRow icon="link" iconBackgroundColor="#1C1C1E">
+          <TextInput
+            label={t('editContact.twitter')}
+            value={values.twitter}
+            onChangeText={(v) => set('twitter', v)}
+            autoCapitalize="none"
+            style={styles.inlineInput}
+            underlineColor="transparent"
+            activeUnderlineColor="transparent"
+            dense
+          />
+        </GroupedRow>
+      </GroupedSection>
+
       <GroupedSection title={t('editContact.otherInfoSection')} style={styles.section}>
         <GroupedRow icon="birthday.cake.fill" iconBackgroundColor="#FF9F0A">
           <TextInput
@@ -128,6 +170,9 @@ export const EMPTY_CONTACT_FORM_VALUES: ContactFormValues = {
   company: '',
   phone: '',
   email: '',
+  linkedin: '',
+  facebook: '',
+  twitter: '',
   birthday: '',
   notes: '',
 };

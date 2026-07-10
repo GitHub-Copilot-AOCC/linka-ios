@@ -115,6 +115,7 @@
     "tags": "Tags",
     "maxPhotosError": "Maximum {{max}} photos — remove one first",
     "contactInfoSection": "Contact Info",
+    "socialSection": "Social Media",
     "otherInfoSection": "Other Info",
     "saveSuccess": "Saved"
   },
