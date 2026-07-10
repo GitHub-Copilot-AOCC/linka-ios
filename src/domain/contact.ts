@@ -20,7 +20,9 @@ export interface ResearchEntry {
   // 這次搜尋額外找到、可能可以補進聯絡人資料的欄位（見 spec.md §5.8 擴充：明確搜尋
   // LinkedIn/Facebook 等社群媒體）。純記錄用途——是否真的寫回 Contact 對應欄位，
   // 需要使用者在 UI 上逐項確認，不會自動覆蓋。
-  extractedFields?: Partial<Pick<Contact, 'role' | 'company' | 'linkedin' | 'facebook' | 'twitter' | 'birthday'>>;
+  extractedFields?: Partial<
+    Pick<Contact, 'role' | 'company' | 'phone' | 'email' | 'linkedin' | 'facebook' | 'twitter' | 'birthday'>
+  >;
 }
 
 export interface Contact {
