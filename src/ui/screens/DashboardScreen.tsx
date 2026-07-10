@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { ScrollView, View, StyleSheet } from 'react-native';
-import { Text, List, Avatar, IconButton, useTheme } from 'react-native-paper';
+import { Text, List, IconButton, useTheme } from 'react-native-paper';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useTranslation } from 'react-i18next';
 import {
@@ -13,8 +13,8 @@ import { recentInteractions, todayDateString } from '@domain/interaction';
 import { useAuthStore } from '@ui/store/authStore';
 import { useContactsStore } from '@ui/store/contactsStore';
 import { useInteractionsStore } from '@ui/store/interactionsStore';
-import { avatarColorFor } from '@ui/theme/avatarPalette';
 import { AISuggestionsPanel } from '@ui/components/AISuggestionsPanel';
+import { ContactAvatar } from '@ui/components/ContactAvatar';
 import { SFIcon } from '@ui/components/AppIcon';
 import { CARD_SHADOW } from '@ui/theme/theme';
 import type { SFSymbol } from 'sf-symbols-typescript';
@@ -153,7 +153,7 @@ export function DashboardScreen() {
               key={c.id}
               title={c.name}
               description={t('reminders.dateLabel', { date: c.nextContactReminder })}
-              left={() => <Avatar.Text size={36} label={c.name.slice(0, 1)} style={{ backgroundColor: avatarColorFor(c.id) }} />}
+              left={() => <ContactAvatar photoUrl={c.photos?.[0]?.url} name={c.name} seed={c.id} size={36} />}
             />
           ))}
         </View>

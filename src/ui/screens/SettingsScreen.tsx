@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ScrollView, View, StyleSheet } from 'react-native';
-import { Text, SegmentedButtons, ProgressBar, Button, HelperText, Avatar, useTheme } from 'react-native-paper';
+import { Text, SegmentedButtons, ProgressBar, Button, HelperText, useTheme } from 'react-native-paper';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -13,7 +13,7 @@ import { useTagsStore } from '@ui/store/tagsStore';
 import { SyncStatusChip } from '@ui/components/SyncStatusChip';
 import { GroupedSection } from '@ui/components/GroupedSection';
 import { GroupedRow } from '@ui/components/GroupedRow';
-import { avatarColorFor } from '@ui/theme/avatarPalette';
+import { ContactAvatar } from '@ui/components/ContactAvatar';
 import { exportContactsToExcel } from '@platform/exportContacts';
 
 type Props = NativeStackScreenProps<SettingsStackParamList, 'SettingsMain'>;
@@ -98,10 +98,11 @@ export function SettingsScreen({ navigation }: Props) {
   return (
     <ScrollView contentContainerStyle={[styles.container, { paddingBottom: tabBarHeight + 24 }]}>
       <View style={styles.profileRow}>
-        <Avatar.Text
+        <ContactAvatar
+          photoUrl={user.photoURL ?? undefined}
+          name={user.displayName ?? user.email ?? '?'}
+          seed={user.uid}
           size={56}
-          label={(user.displayName ?? user.email ?? '?').charAt(0)}
-          style={{ backgroundColor: avatarColorFor(user.uid) }}
         />
         <View style={styles.profileInfo}>
           <Text variant="titleLarge" numberOfLines={1}>

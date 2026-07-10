@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Avatar, Button, Dialog, Portal, Text, TextInput, useTheme } from 'react-native-paper';
+import { Button, Dialog, Portal, Text, TextInput, useTheme } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import type { AgentSuggestion } from '@domain/agentSuggestion';
 import { todayDateString } from '@domain/interaction';
 import { useContactsStore } from '@ui/store/contactsStore';
 import { useSuggestionsStore } from '@ui/store/suggestionsStore';
-import { avatarColorFor } from '@ui/theme/avatarPalette';
 import { SFIcon } from '@ui/components/AppIcon';
+import { ContactAvatar } from '@ui/components/ContactAvatar';
 
 interface AISuggestionsPanelProps {
   uid: string;
@@ -63,10 +63,11 @@ export function AISuggestionsPanel({ uid }: AISuggestionsPanelProps) {
               </View>
 
               <View style={styles.contactRow}>
-                <Avatar.Text
+                <ContactAvatar
+                  photoUrl={contact?.photos?.[0]?.url}
+                  name={contact?.name ?? '?'}
+                  seed={suggestion.contactId}
                   size={44}
-                  label={(contact?.name ?? '?').charAt(0)}
-                  style={{ backgroundColor: avatarColorFor(suggestion.contactId) }}
                 />
                 <View style={styles.contactInfo}>
                   <Text variant="titleMedium" numberOfLines={1}>

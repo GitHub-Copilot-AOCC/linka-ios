@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { FlatList, View, StyleSheet } from 'react-native';
-import { Text, Avatar, List, FAB, IconButton, Searchbar, SegmentedButtons, Chip, Menu, useTheme } from 'react-native-paper';
+import { Text, List, FAB, IconButton, Searchbar, SegmentedButtons, Chip, Menu, useTheme } from 'react-native-paper';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -9,8 +9,8 @@ import { filterContactsByKeyword, filterContactsByTag, sortContacts, type Contac
 import { useContactsStore } from '@ui/store/contactsStore';
 import { useTagsStore } from '@ui/store/tagsStore';
 import { useAuthStore } from '@ui/store/authStore';
-import { avatarColorFor } from '@ui/theme/avatarPalette';
 import { SFIcon } from '@ui/components/AppIcon';
+import { ContactAvatar } from '@ui/components/ContactAvatar';
 
 type Props = NativeStackScreenProps<ContactsStackParamList, 'ContactsList'>;
 
@@ -143,9 +143,7 @@ export function ContactsListScreen({ navigation }: Props) {
             <List.Item
               title={item.name}
               description={item.company}
-              left={() => (
-                <Avatar.Text size={40} label={item.name.slice(0, 1)} style={{ backgroundColor: avatarColorFor(item.id) }} />
-              )}
+              left={() => <ContactAvatar photoUrl={item.photos?.[0]?.url} name={item.name} seed={item.id} size={40} />}
               right={() => (
                 <SFIcon
                   name={item.importance === 5 ? 'star.fill' : 'star'}
