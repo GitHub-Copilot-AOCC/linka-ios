@@ -118,9 +118,18 @@ export function ContactResearchSection({ uid, contact }: ContactResearchSectionP
             const newValue = pendingFields[key];
             if (!newValue) return null;
             const currentValue = contact[key] as string | undefined;
+            const selected = selectedKeys.has(key);
             return (
-              <GroupedRow key={key} onPress={() => toggleField(key)}>
-                <Checkbox status={selectedKeys.has(key) ? 'checked' : 'unchecked'} onPress={() => toggleField(key)} />
+              // 只有這一層有 onPress——Checkbox 本身不接 onPress，純粹當視覺指示。曾經
+              // 兩邊都接 onPress，在 iOS 上巢狀 Pressable 偶爾會兩個都觸發，點一下等於
+              // 勾了又立刻取消，畫面上完全看不出變化（見使用者回報：套用按鈕一直是灰的、
+              // 點了也沒套用進去）。選中時整行變色，比小小的 checkbox 圖示更容易一眼看出狀態。
+              <GroupedRow
+                key={key}
+                onPress={() => toggleField(key)}
+                style={selected ? { backgroundColor: theme.colors.primaryContainer } : undefined}
+              >
+                <Checkbox status={selected ? 'checked' : 'unchecked'} />
                 <View style={styles.fieldInfo}>
                   <Text>{t(FIELD_LABEL_KEYS[key])}</Text>
                   <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
