@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ScrollView, View, StyleSheet } from 'react-native';
 import { Text, SegmentedButtons, ProgressBar, Button, HelperText, Avatar, useTheme } from 'react-native-paper';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { SettingsStackParamList } from '@ui/navigation/SettingsStackParamList';
@@ -27,6 +28,9 @@ export function SettingsScreen({ navigation }: Props) {
   const logout = useAuthStore((s) => s.logout);
   const { t, i18n } = useTranslation();
   const theme = useTheme();
+  // 見 AssistantChatScreen.tsx 同樣的註解：浮動毛玻璃 Tab Bar 不會自動保留版面空間，
+  // 登出按鈕在畫面最下方，不補 padding 會被蓋住點不到。
+  const tabBarHeight = useBottomTabBarHeight();
   const { quota, subscribe } = useUsageQuotaStore();
   const { contacts, subscribe: subscribeContacts } = useContactsStore();
   const { all: interactions, subscribeAll: subscribeInteractions } = useInteractionsStore();
@@ -92,7 +96,7 @@ export function SettingsScreen({ navigation }: Props) {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView contentContainerStyle={[styles.container, { paddingBottom: tabBarHeight + 24 }]}>
       <View style={styles.profileRow}>
         <Avatar.Text
           size={56}

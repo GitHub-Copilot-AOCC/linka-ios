@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { FlatList, View, StyleSheet } from 'react-native';
 import { Text, Avatar, List, FAB, IconButton, Searchbar, SegmentedButtons, Chip, Menu, useTheme } from 'react-native-paper';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { ContactsStackParamList } from '@ui/navigation/ContactsStackParamList';
@@ -25,6 +26,9 @@ export function ContactsListScreen({ navigation }: Props) {
   const subscribeTags = useTagsStore((s) => s.subscribe);
   const { t } = useTranslation();
   const theme = useTheme();
+  // 見 AssistantChatScreen.tsx 同樣的註解：浮動毛玻璃 Tab Bar 不會自動保留版面空間，
+  // FAB 跟列表最後一筆都要自己補 padding，不然會被蓋住。
+  const tabBarHeight = useBottomTabBarHeight();
 
   const [keyword, setKeyword] = useState('');
   const [sortBy, setSortBy] = useState<ContactSortBy>('name');
@@ -134,6 +138,7 @@ export function ContactsListScreen({ navigation }: Props) {
         <FlatList
           data={filtered}
           keyExtractor={(item) => item.id}
+          contentContainerStyle={{ paddingBottom: tabBarHeight + 16 }}
           renderItem={({ item }) => (
             <List.Item
               title={item.name}
@@ -153,7 +158,11 @@ export function ContactsListScreen({ navigation }: Props) {
           )}
         />
       )}
-      <FAB icon="creation" style={styles.fabQuickCapture} onPress={() => navigation.navigate('QuickCapture')} />
+      <FAB
+        icon="creation"
+        style={[styles.fabQuickCapture, { bottom: tabBarHeight + 16 }]}
+        onPress={() => navigation.navigate('QuickCapture')}
+      />
     </View>
   );
 }

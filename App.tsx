@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator, type NativeStackScreenProps } from '@react-navigation/native-stack';
 import { PaperProvider, ActivityIndicator, IconButton } from 'react-native-paper';
@@ -95,6 +95,18 @@ const TAB_ICONS: Record<string, string> = {
   Settings: 'cog',
 };
 
+// Contacts/Settings tab 底下是巢狀 Stack——只有停在最上層的 List/Main 畫面才顯示浮動
+// Tab Bar；一旦推進到詳情/編輯等下層畫面，把 Tab Bar 整個隱藏（display:'none'），不是
+// 只是視覺上蓋住。之前用 position:'absolute' 讓 Tab Bar 浮起來做毛玻璃效果，副作用是
+// 底層畫面失去了原本 Tab Bar 佔用的版面空間保留，導致最下方的按鈕/輸入框被浮動的 Tab
+// Bar 蓋住點不到（見使用者回報：聯絡人詳情頁「蒐集網路資料」按鈕被擋住）。深層畫面直接
+// 隱藏 Tab Bar 是 iOS 原生慣例（推進到編輯頁通常本來就不會再顯示底部導覽），一次徹底解決。
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function nestedTabBarStyle(route: any, listRouteName: string) {
+  const routeName = getFocusedRouteNameFromRoute(route) ?? listRouteName;
+  return routeName === listRouteName ? { position: 'absolute' as const } : { display: 'none' as const };
+}
+
 function MainTabs() {
   const { t } = useTranslation();
   return (
@@ -108,26 +120,28 @@ function MainTabs() {
         // 半透明毛玻璃 Tab Bar（見使用者提供的 mockup 規格：Apple Intelligence 風格），
         // 底部導覽列本來就是浮在內容上，符合套用毛玻璃材質的前提。
         tabBarStyle: { position: 'absolute' },
-        tabBarBackground: () => (
-          <BlurView
-            intensity={80}
-            tint="light"
-            style={{ flex: 1 }}
-          />
-        ),
+        tabBarBackground: () => <BlurView intensity={80} tint="light" style={{ flex: 1 }} />,
       })}
     >
       <Tab.Screen name="Home" component={DashboardScreen} options={{ title: t('nav.home') }} />
       <Tab.Screen
         name="Contacts"
         component={ContactsNavigator}
-        options={{ title: t('nav.contacts'), headerShown: false }}
+        options={({ route }) => ({
+          title: t('nav.contacts'),
+          headerShown: false,
+          tabBarStyle: nestedTabBarStyle(route, 'ContactsList'),
+        })}
       />
       <Tab.Screen name="Assistant" component={AssistantChatScreen} options={{ title: t('nav.assistant') }} />
       <Tab.Screen
         name="Settings"
         component={SettingsNavigator}
-        options={{ title: t('nav.settings'), headerShown: false }}
+        options={({ route }) => ({
+          title: t('nav.settings'),
+          headerShown: false,
+          tabBarStyle: nestedTabBarStyle(route, 'SettingsMain'),
+        })}
       />
     </Tab.Navigator>
   );

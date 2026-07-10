@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { View, FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet } from 'react-native';
 import { Text, TextInput, IconButton, Card, Chip, ActivityIndicator, HelperText, useTheme } from 'react-native-paper';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@ui/store/authStore';
 import { useContactsStore } from '@ui/store/contactsStore';
@@ -25,6 +26,10 @@ import type { SFSymbol } from 'sf-symbols-typescript';
 export function AssistantChatScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
+  // Tab Bar 改成浮動毛玻璃（position:'absolute'）之後，畫面不會自動保留底部空間——這個
+  // 畫面的輸入框本來就緊貼畫面最下緣，沒有這個 padding 會直接被浮動的 Tab Bar 蓋住整個
+  // 消失（見使用者回報：AI 秘書問答沒有輸入框）。
+  const tabBarHeight = useBottomTabBarHeight();
   const uid = useAuthStore((s) => s.user?.uid);
   const displayName = useAuthStore((s) => s.user?.displayName);
   const email = useAuthStore((s) => s.user?.email);
@@ -207,7 +212,7 @@ export function AssistantChatScreen() {
         </View>
       )}
       {error && <HelperText type="error">{error}</HelperText>}
-      <View style={styles.inputRow}>
+      <View style={[styles.inputRow, { paddingBottom: tabBarHeight + 8 }]}>
         <TextInput
           style={styles.input}
           placeholder={t('assistantChat.inputPlaceholder')}

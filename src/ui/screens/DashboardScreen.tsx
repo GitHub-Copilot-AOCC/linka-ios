@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { ScrollView, View, StyleSheet } from 'react-native';
 import { Text, List, Avatar, IconButton, useTheme } from 'react-native-paper';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useTranslation } from 'react-i18next';
 import {
   isReminderDue,
@@ -39,6 +40,9 @@ function daysBefore(dateIso: string, today: string): number {
 export function DashboardScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
+  // Tab Bar 改成浮動毛玻璃（position:'absolute'）之後，畫面不會自動保留底部空間，要自己
+  // 用實際的 Tab Bar 高度補上 padding，不然最下面的內容會被浮動的 Tab Bar 蓋住。
+  const tabBarHeight = useBottomTabBarHeight();
   const uid = useAuthStore((s) => s.user?.uid);
   const displayName = useAuthStore((s) => s.user?.displayName);
   const email = useAuthStore((s) => s.user?.email);
@@ -103,7 +107,7 @@ export function DashboardScreen() {
   ];
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView contentContainerStyle={[styles.container, { paddingBottom: tabBarHeight + 24 }]}>
       <View style={styles.headerRow}>
         <View style={styles.headerText}>
           <Text variant="headlineLarge">{t(greetingKey(hour), { name: firstName })}</Text>
@@ -186,7 +190,7 @@ export function DashboardScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 16, paddingBottom: 100 },
+  container: { padding: 16 },
   headerRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 },
   headerText: { flex: 1, gap: 4 },
   sectionTitle: { marginTop: 20, marginBottom: 12 },
