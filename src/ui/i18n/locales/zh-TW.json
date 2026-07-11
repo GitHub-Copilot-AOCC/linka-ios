@@ -203,9 +203,7 @@
     "chooseImage": "拍照/選擇圖片",
     "offlineError": "離線時無法使用名片辨識。",
     "noNameError": "無法從這張圖片辨識出姓名，請換一張再試。",
-    "genericError": "名片辨識失敗，請稍後再試。",
-    "confirmAdd": "確認新增聯絡人",
-    "saving": "新增中…"
+    "genericError": "名片辨識失敗，請稍後再試。"
   },
   "aiSuggestions": {
     "title": "今天需要處理",

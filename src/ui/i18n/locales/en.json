@@ -203,9 +203,7 @@
     "chooseImage": "Take photo / choose image",
     "offlineError": "Business card scanning is unavailable while offline.",
     "noNameError": "Couldn't detect a name in this image — try a different photo.",
-    "genericError": "Business card scan failed. Please try again.",
-    "confirmAdd": "Confirm & add contact",
-    "saving": "Adding…"
+    "genericError": "Business card scan failed. Please try again."
   },
   "aiSuggestions": {
     "title": "Today's follow-ups",

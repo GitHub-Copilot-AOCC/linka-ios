@@ -14,13 +14,17 @@ import { useTagsStore } from '@ui/store/tagsStore';
 
 type Props = NativeStackScreenProps<ContactsStackParamList, 'AddContact'>;
 
-/** 新增聯絡人（見 spec.md §5.2）：跟 Web 版「快速新增」對話框對應，不含照片，存完直接回列表。 */
-export function AddContactScreen({ navigation }: Props) {
+/**
+ * 新增聯絡人（見 spec.md §5.2）：跟 Web 版「快速新增」對話框對應，不含照片，存完直接回列表。
+ * 名片辨識掃描完會帶著辨識出的欄位（`route.params.initialValues`）導到這裡，跟手動新增
+ * 走同一份完整表單，使用者確認/修改後才按「儲存」，不會掃描完就直接寫入資料庫。
+ */
+export function AddContactScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const uid = useAuthStore((s) => s.user?.uid);
   const add = useContactsStore((s) => s.add);
   const subscribeTags = useTagsStore((s) => s.subscribe);
-  const [values, setValues] = useState(EMPTY_CONTACT_FORM_VALUES);
+  const [values, setValues] = useState({ ...EMPTY_CONTACT_FORM_VALUES, ...route.params?.initialValues });
   const [tagIds, setTagIds] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
