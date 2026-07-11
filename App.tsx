@@ -54,7 +54,12 @@ function ContactsNavigator() {
         component={ContactsListScreen}
         options={({ navigation }) => ({
           title: t('contacts.title'),
-          headerLargeTitle: true,
+          // 原本這裡有 headerLargeTitle:true（大標題)——native-stack 的大標題收合機制是
+          // 靠追蹤畫面裡「唯一一個」UIScrollView 的捲動位置來決定要不要收合，這個畫面最上面
+          // 是搜尋列/排序/標籤篩選，是獨立的 View，不是跟下面的 FlatList 同一個捲動容器，
+          // 導覽列因此进入不正常的狀態，把搜尋列跟名片辨識等按鈕整個往上推去蓋住狀態列
+          // （見使用者截圖：畫面最上方被遮住,搜尋跟名片辨識按不到)。拿掉大標題,改回一般
+          // 固定高度的標題列,犧牲一點視覺效果換回可以正常操作。
           // 「+」從原本浮動 FAB 移到 nav bar 右上角（視覺重新設計，見使用者提供的 mockup +
           // iOS 原生慣例），畫面上只留「✨」快速記錄一個 FAB。
           headerRight: () => <IconButton icon="plus" onPress={() => navigation.navigate('AddContact')} />,
