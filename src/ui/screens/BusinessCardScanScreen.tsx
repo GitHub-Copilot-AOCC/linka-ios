@@ -94,7 +94,7 @@ export function BusinessCardScanScreen({ navigation }: Props) {
           {t('businessCard.chooseImage')}
         </Button>
         <Button mode="outlined" icon="image" onPress={() => handlePickImage('library')} disabled={loading}>
-          {t('import.chooseFile')}
+          {t('businessCard.chooseFromLibrary')}
         </Button>
       </View>
 
