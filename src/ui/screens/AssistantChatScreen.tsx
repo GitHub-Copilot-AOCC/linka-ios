@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { View, FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet } from 'react-native';
 import { Text, TextInput, IconButton, Card, Chip, ActivityIndicator, HelperText, useTheme } from 'react-native-paper';
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { useBottomTabBarHeight, type BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@ui/store/authStore';
 import { useContactsStore } from '@ui/store/contactsStore';
@@ -15,7 +15,10 @@ import { latestInteractionDateByContactId, isLongSilence, todayDateString } from
 import { SFIcon } from '@ui/components/AppIcon';
 import { FadeInView } from '@ui/components/FadeInView';
 import { CARD_SHADOW } from '@ui/theme/theme';
+import type { RootTabParamList } from '@ui/navigation/RootTabParamList';
 import type { SFSymbol } from 'sf-symbols-typescript';
+
+type Props = BottomTabScreenProps<RootTabParamList, 'Assistant'>;
 
 /**
  * AI 個人秘書問答（見 spec.md §5.5a）：兩階段「先查詢、後生成」，跟 Web 版共用同一套
@@ -23,8 +26,14 @@ import type { SFSymbol } from 'sf-symbols-typescript';
  * 視覺重新設計：空狀態改成歡迎卡片 + 建議問題 + 快速操作 2x2 格線，數字全部是既有
  * domain 函式已經算好的資料（isLongSilence/upcomingBirthdays/importance），沒有新寫
  * 計算邏輯；點擊快速操作直接送出對應問題，跟輸入框走同一套既有問答流程。
+ *
+ * 引用來源（citations）點擊會跳到該聯絡人的詳情頁（見使用者要求）——citation 只有
+ * contactName 文字，沒有 contactId，這裡用姓名去比對目前的聯絡人清單找出 id；「AI 秘書」
+ * 是跟「聯絡人」平行的 Tab、不在同一個 Stack 底下，所以要用巢狀導覽語法
+ * navigation.navigate('Contacts', {screen:'ContactDetail', params:{contactId}}) 跨 Tab
+ * 導覽，不能直接 navigate('ContactDetail')。找不到同名聯絡人（例如已被刪除）就不給按。
  */
-export function AssistantChatScreen() {
+export function AssistantChatScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const theme = useTheme();
   // Tab Bar 改成浮動毛玻璃（position:'absolute'）之後，畫面不會自動保留底部空間——這個
@@ -82,6 +91,12 @@ export function AssistantChatScreen() {
 
   function handleSend() {
     return sendQuestion(input.trim());
+  }
+
+  function handleCitationPress(citation: AssistantCitation) {
+    const contact = contacts.find((c) => c.name === citation.contactName);
+    if (!contact) return;
+    navigation.navigate('Contacts', { screen: 'ContactDetail', params: { contactId: contact.id } });
   }
 
   const today = todayDateString();
@@ -193,7 +208,7 @@ export function AssistantChatScreen() {
                   {item.citations && item.citations.length > 0 && (
                     <View style={styles.citationsRow}>
                       {item.citations.map((c: AssistantCitation, i: number) => (
-                        <Chip key={i} compact style={styles.citationChip}>
+                        <Chip key={i} compact style={styles.citationChip} onPress={() => handleCitationPress(c)}>
                           {c.interactionDate
                             ? t('assistantChat.citationWithDate', { name: c.contactName, date: c.interactionDate })
                             : c.contactName}

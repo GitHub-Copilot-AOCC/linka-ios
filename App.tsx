@@ -28,8 +28,9 @@ import { OperationLogScreen } from '@ui/screens/OperationLogScreen';
 import { ErrorBoundary } from '@ui/components/ErrorBoundary';
 import type { ContactsStackParamList } from '@ui/navigation/ContactsStackParamList';
 import type { SettingsStackParamList } from '@ui/navigation/SettingsStackParamList';
+import type { RootTabParamList } from '@ui/navigation/RootTabParamList';
 
-const Tab = createBottomTabNavigator();
+const Tab = createBottomTabNavigator<RootTabParamList>();
 const ContactsStack = createNativeStackNavigator<ContactsStackParamList>();
 const SettingsStack = createNativeStackNavigator<SettingsStackParamList>();
 
