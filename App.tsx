@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer, getFocusedRouteNameFromRoute } from '@react-navigation/native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator, type NativeStackScreenProps } from '@react-navigation/native-stack';
 import { PaperProvider, ActivityIndicator, IconButton } from 'react-native-paper';
@@ -161,23 +162,30 @@ export default function App() {
   }, [init]);
 
   return (
-    // AppIcon 是一個混合 renderer：查得到 SF Symbol 對照就畫 SF Symbol（視覺重新設計，
-    // 見 sfSymbols.ts），查不到（react-native-paper 內建圖示、品牌 logo 等）就照舊退回
-    // @expo/vector-icons 的 MaterialCommunityIcons——這套字型是 Expo 自己管理、保證會
-    // 正確打包進 iOS binary（先前真機截圖回報過圖示變成 "?" 方框，就是字型沒打包的問題）。
-    <PaperProvider theme={theme} settings={{ icon: AppIcon }}>
-      <NavigationContainer>
-        {initializing ? (
-          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-            <ActivityIndicator />
-          </View>
-        ) : user ? (
-          <MainTabs />
-        ) : (
-          <LoginScreen />
-        )}
-      </NavigationContainer>
-      <StatusBar style="auto" />
-    </PaperProvider>
+    // React Navigation 官方要求整個 App 要包在 SafeAreaProvider 裡（見官方文件),沒有
+    // 這一層,safe area inset 在某些情況下會算成 0,導覽列的高度/位置計算就會出錯——這正是
+    // 使用者截圖回報的問題：聯絡人列表最上方的搜尋列、名片辨識按鈕，還有 nav bar 的「+」，
+    // 全部往上疊到狀態列的位置，點不到。之前先猜是 headerLargeTitle 的捲動追蹤問題,拿掉
+    // 後畫面依然不對，才回頭發現這一層根本沒接，才是真正的根因。
+    <SafeAreaProvider>
+      {/* AppIcon 是一個混合 renderer：查得到 SF Symbol 對照就畫 SF Symbol（視覺重新設計，
+          見 sfSymbols.ts），查不到（react-native-paper 內建圖示、品牌 logo 等）就照舊退回
+          @expo/vector-icons 的 MaterialCommunityIcons——這套字型是 Expo 自己管理、保證會
+          正確打包進 iOS binary（先前真機截圖回報過圖示變成 "?" 方框，就是字型沒打包的問題）。 */}
+      <PaperProvider theme={theme} settings={{ icon: AppIcon }}>
+        <NavigationContainer>
+          {initializing ? (
+            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+              <ActivityIndicator />
+            </View>
+          ) : user ? (
+            <MainTabs />
+          ) : (
+            <LoginScreen />
+          )}
+        </NavigationContainer>
+        <StatusBar style="auto" />
+      </PaperProvider>
+    </SafeAreaProvider>
   );
 }
