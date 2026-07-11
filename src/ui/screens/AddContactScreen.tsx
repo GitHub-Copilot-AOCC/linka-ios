@@ -104,7 +104,14 @@ export function AddContactScreen({ navigation, route }: Props) {
         await Promise.all(photoUris.map((uri) => cleanupPendingImage(uri)));
       } catch (err) {
         console.error('[AddContactScreen] uploadContactPhoto failed:', err);
-        Alert.alert(t('businessCard.photoUploadFailedTitle'), t('businessCard.photoUploadFailedMessage'));
+        // 把實際錯誤內容（例如 Firebase Storage 的錯誤代碼）一起顯示出來——裝置上看不到
+        // console.error 的輸出，光靠一句通用訊息無法判斷真正卡在哪一步（見使用者回報：
+        // 上傳跟裁切大頭照都失敗，需要看到實際錯誤才能繼續往下排查）。
+        const detail = err instanceof Error ? err.message : String(err);
+        Alert.alert(
+          t('businessCard.photoUploadFailedTitle'),
+          `${t('businessCard.photoUploadFailedMessage')}\n\n${detail}`
+        );
       }
     }
     setSaving(false);
