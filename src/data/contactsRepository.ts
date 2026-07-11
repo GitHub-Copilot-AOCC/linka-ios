@@ -120,13 +120,17 @@ export async function deleteContact(uid: string, contactId: string): Promise<voi
  * 上傳聯絡人照片到 Firebase Storage（見 spec.md §5.2、§7：路徑
  * users/{uid}/contacts/{contactId}/photos/{photoId}.jpg），並把下載 URL 加進
  * Contact.photos 陣列。呼叫端負責先做 MAX_PHOTOS_PER_CONTACT 上限檢查。
+ *
+ * 回傳新增的這一筆 ContactPhoto——需要連續上傳多張照片時（例如名片辨識同時裁出大頭照
+ * 跟名片全圖），呼叫端要拿這個回傳值累積下一次呼叫的 existingPhotos，不能每次都傳空
+ * 陣列進來，否則後面的呼叫會覆蓋掉前一張，不是附加。
  */
 export async function uploadContactPhoto(
   uid: string,
   contactId: string,
   blob: Blob,
   existingPhotos: ContactPhoto[]
-): Promise<void> {
+): Promise<ContactPhoto> {
   if (!storage) throw new Error('Firebase Storage is not configured');
   const photoId = `${Date.now()}`;
   const path = `users/${uid}/contacts/${contactId}/photos/${photoId}.jpg`;
@@ -136,6 +140,7 @@ export async function uploadContactPhoto(
 
   const photo: ContactPhoto = { url, source: 'upload', addedAt: Date.now() };
   await updateContact(uid, contactId, { photos: [...existingPhotos, photo] });
+  return photo;
 }
 
 /**

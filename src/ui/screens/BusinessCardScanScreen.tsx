@@ -45,9 +45,16 @@ export function BusinessCardScanScreen({ navigation }: Props) {
       // 有偵測出合理的名片邊界框才裁切；沒有（或邊界框不合理，見 parseCardBoundingBox
       // 的防呆)就直接用壓縮後的完整照片,不要因為裁切失敗擋住整個新增流程（見使用者要求：
       // 掃描的照片要自動存進聯絡人照片集，並先裁掉名片以外的區域，但裁不出來也不能卡住)。
-      const photoUri = result.cardBoundingBox
+      const cardPhotoUri = result.cardBoundingBox
         ? await cropToBoundingBox(compressedUri, result.cardBoundingBox).catch(() => compressedUri)
         : compressedUri;
+
+      // 名片上如果印有本人大頭照，裁出來排第一張當頭像（見使用者要求：比整張名片更適合
+      // 當大頭照)，名片全圖排第二張留存參考；裁不出來（沒偵測到或裁切失敗)就只留名片全圖。
+      const personPhotoUri = result.personPhotoBoundingBox
+        ? await cropToBoundingBox(compressedUri, result.personPhotoBoundingBox).catch(() => null)
+        : null;
+      const pendingPhotoUris = personPhotoUri ? [personPhotoUri, cardPhotoUri] : [cardPhotoUri];
 
       // 用 replace 而不是 navigate：掃描這一頁的任務結束了，換成新增聯絡人表單，
       // 從那邊按返回應該直接回到聯絡人列表，不是回到這個已經用不到的掃描畫面。
@@ -59,7 +66,7 @@ export function BusinessCardScanScreen({ navigation }: Props) {
           phone: result.fields.phone ?? '',
           email: result.fields.email ?? '',
         },
-        pendingPhotoUri: photoUri,
+        pendingPhotoUris,
       });
     } catch (err) {
       setError(err instanceof GeminiServiceError ? err.message : t('businessCard.genericError'));

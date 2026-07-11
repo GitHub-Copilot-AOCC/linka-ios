@@ -19,12 +19,16 @@ export interface CardBoundingBox {
 export interface BusinessCardScanResult {
   fields: BusinessCardFields;
   cardBoundingBox?: CardBoundingBox;
+  // 名片上印的大頭照（不是所有名片都有）。有偵測到就用它當這位聯絡人的頭像，比整張
+  // 名片（含文字/logo）更適合當大頭照（見使用者要求）。
+  personPhotoBoundingBox?: CardBoundingBox;
 }
 
 export const BUSINESS_CARD_EXTRACTION_PROMPT = `這是一張名片的照片，請從中辨識出以下欄位並以 JSON 物件回傳：
 {
   "name": string, "role": string, "company": string, "phone": string, "email": string,
-  "cardBoundingBox": {"x": number, "y": number, "width": number, "height": number}
+  "cardBoundingBox": {"x": number, "y": number, "width": number, "height": number},
+  "personPhotoBoundingBox": {"x": number, "y": number, "width": number, "height": number}
 }
 
 規則：
@@ -33,6 +37,9 @@ export const BUSINESS_CARD_EXTRACTION_PROMPT = `這是一張名片的照片，�
 - cardBoundingBox 是這張名片在整張照片裡的最小外框，x/y 是左上角座標、width/height 是寬高，
   四個數字都是相對於整張照片寬高的比例（0.0 到 1.0 之間，不是像素值）；如果照片裡看不出明顯的
   名片邊界（例如已經是裁切好的名片特寫），省略這個欄位，不要亂猜一個數字
+- 如果這張名片上印有這位聯絡人本人的大頭照/人像照片（不是公司 logo 或裝飾圖案），
+  personPhotoBoundingBox 用同樣的座標格式標出那張照片在整張照片裡的位置；沒有這種人像照片
+  就省略這個欄位，不要把 logo 或其他圖案誤判成人像
 - 只回傳 JSON 物件本身，不要加上任何說明文字`;
 
 /** 解析 Cloud Function 回傳的原始資料，過濾掉空字串欄位並確保至少有姓名。 */
@@ -75,12 +82,13 @@ export function parseCardBoundingBox(raw: unknown): CardBoundingBox | undefined 
   return withinUnitRange && largeEnough ? box : undefined;
 }
 
-/** 解析 Cloud Function 回傳的完整原始資料：文字欄位 + 可能的裁切框。 */
+/** 解析 Cloud Function 回傳的完整原始資料：文字欄位 + 可能的裁切框（名片全圖 + 大頭照）。 */
 export function parseBusinessCardScanResult(raw: unknown): BusinessCardScanResult | null {
   const fields = parseBusinessCardFields(raw);
   if (!fields) return null;
 
   const data = raw as Record<string, unknown>;
   const cardBoundingBox = parseCardBoundingBox(data.cardBoundingBox);
-  return { fields, cardBoundingBox };
+  const personPhotoBoundingBox = parseCardBoundingBox(data.personPhotoBoundingBox);
+  return { fields, cardBoundingBox, personPhotoBoundingBox };
 }
