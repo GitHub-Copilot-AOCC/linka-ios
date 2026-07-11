@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@ui/store/authStore';
 import { useContactsStore } from '@ui/store/contactsStore';
 import { useInteractionsStore } from '@ui/store/interactionsStore';
+import { useTagsStore } from '@ui/store/tagsStore';
 import { fetchInteractionsForContacts } from '@data/interactionsRepository';
 import { planContactQuery, answerContactQuestion, GeminiServiceError } from '@services/geminiService';
 import { selectRelevantContacts, toContactLite, type ChatMessage, type AssistantCitation } from '@domain/assistantChat';
@@ -36,6 +37,8 @@ export function AssistantChatScreen() {
   const { contacts, subscribe } = useContactsStore();
   const allInteractions = useInteractionsStore((s) => s.all);
   const subscribeAllInteractions = useInteractionsStore((s) => s.subscribeAll);
+  const tags = useTagsStore((s) => s.tags);
+  const subscribeTags = useTagsStore((s) => s.subscribe);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -46,11 +49,13 @@ export function AssistantChatScreen() {
     if (!uid) return;
     const unsubContacts = subscribe(uid);
     const unsubInteractions = subscribeAllInteractions(uid);
+    const unsubTags = subscribeTags(uid);
     return () => {
       unsubContacts();
       unsubInteractions();
+      unsubTags();
     };
-  }, [uid, subscribe, subscribeAllInteractions]);
+  }, [uid, subscribe, subscribeAllInteractions, subscribeTags]);
 
   async function sendQuestion(question: string) {
     if (!question || !uid || loading) return;
@@ -64,7 +69,8 @@ export function AssistantChatScreen() {
       const plan = await planContactQuery(question, toContactLite(contacts));
       const relevantContacts = selectRelevantContacts(contacts, plan);
       const interactionsByContactId = await fetchInteractionsForContacts(uid, relevantContacts.map((c) => c.id));
-      const result = await answerContactQuestion(question, relevantContacts, interactionsByContactId);
+      const tagNameById = Object.fromEntries(tags.map((tag) => [tag.id, tag.name]));
+      const result = await answerContactQuestion(question, relevantContacts, interactionsByContactId, tagNameById);
       setMessages((prev) => [...prev, { role: 'assistant', text: result.answer, citations: result.citations }]);
     } catch (err) {
       setError(err instanceof GeminiServiceError ? err.message : t('assistantChat.genericError'));
