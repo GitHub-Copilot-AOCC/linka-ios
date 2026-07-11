@@ -11,6 +11,7 @@ import { GroupedRow } from '@ui/components/GroupedRow';
 import { useContactsStore } from '@ui/store/contactsStore';
 import { useAuthStore } from '@ui/store/authStore';
 import { useTagsStore } from '@ui/store/tagsStore';
+import { uploadContactPhoto } from '@data/contactsRepository';
 
 type Props = NativeStackScreenProps<ContactsStackParamList, 'AddContact'>;
 
@@ -50,6 +51,17 @@ export function AddContactScreen({ navigation, route }: Props) {
       notes: values.notes || undefined,
       tags: tagIds.length > 0 ? tagIds : undefined,
     });
+    if (result.ok && result.id && route.params?.pendingPhotoUri) {
+      // 名片辨識帶過來的照片，這裡才真的上傳——contactId 要等聯絡人建立成功才存在
+      // （跟 ContactDetailScreen.tsx 的 handleAddPhoto 同一個模式）。上傳失敗不影響
+      // 聯絡人已經建立成功，最多是這張照片沒進去，不應該讓使用者以為整個新增失敗了。
+      try {
+        const blob = await (await fetch(route.params.pendingPhotoUri)).blob();
+        await uploadContactPhoto(uid, result.id, blob, []);
+      } catch (err) {
+        console.error('[AddContactScreen] uploadContactPhoto failed:', err);
+      }
+    }
     setSaving(false);
     if (result.ok) {
       navigation.goBack();

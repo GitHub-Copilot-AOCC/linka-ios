@@ -7,7 +7,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { ContactsStackParamList } from '@ui/navigation/ContactsStackParamList';
 import { scanBusinessCard, GeminiServiceError } from '@services/geminiService';
 import { pickImage } from '@platform/filePicker';
-import { compressImage } from '@platform/imageCompression';
+import { compressImage, cropToBoundingBox } from '@platform/imageCompression';
 
 type Props = NativeStackScreenProps<ContactsStackParamList, 'BusinessCardScan'>;
 
@@ -41,16 +41,25 @@ export function BusinessCardScanScreen({ navigation }: Props) {
         setError(t('businessCard.noNameError'));
         return;
       }
+
+      // 有偵測出合理的名片邊界框才裁切；沒有（或邊界框不合理，見 parseCardBoundingBox
+      // 的防呆)就直接用壓縮後的完整照片,不要因為裁切失敗擋住整個新增流程（見使用者要求：
+      // 掃描的照片要自動存進聯絡人照片集，並先裁掉名片以外的區域，但裁不出來也不能卡住)。
+      const photoUri = result.cardBoundingBox
+        ? await cropToBoundingBox(compressedUri, result.cardBoundingBox).catch(() => compressedUri)
+        : compressedUri;
+
       // 用 replace 而不是 navigate：掃描這一頁的任務結束了，換成新增聯絡人表單，
       // 從那邊按返回應該直接回到聯絡人列表，不是回到這個已經用不到的掃描畫面。
       navigation.replace('AddContact', {
         initialValues: {
-          name: result.name,
-          role: result.role ?? '',
-          company: result.company ?? '',
-          phone: result.phone ?? '',
-          email: result.email ?? '',
+          name: result.fields.name,
+          role: result.fields.role ?? '',
+          company: result.fields.company ?? '',
+          phone: result.fields.phone ?? '',
+          email: result.fields.email ?? '',
         },
+        pendingPhotoUri: photoUri,
       });
     } catch (err) {
       setError(err instanceof GeminiServiceError ? err.message : t('businessCard.genericError'));
