@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { ScrollView, View, StyleSheet } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { ScrollView, View, StyleSheet, Pressable } from 'react-native';
 import { Text, List, IconButton, useTheme } from 'react-native-paper';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useTranslation } from 'react-i18next';
@@ -7,7 +7,7 @@ import {
   isReminderDue,
   sortByReminderDate,
   upcomingBirthdays,
-  recentContacts,
+  contactsAddedWithinHours,
 } from '@domain/contact';
 import { recentInteractions, todayDateString } from '@domain/interaction';
 import { useAuthStore } from '@ui/store/authStore';
@@ -18,6 +18,13 @@ import { ContactAvatar } from '@ui/components/ContactAvatar';
 import { SFIcon } from '@ui/components/AppIcon';
 import { CARD_SHADOW } from '@ui/theme/theme';
 import type { SFSymbol } from 'sf-symbols-typescript';
+
+type StatKey = 'recentlyAdded' | 'recentInteractions' | 'birthdays' | 'due';
+
+// 「最近新增」的定義（見使用者確認）：過去 72 小時內建立的聯絡人，不是「最新的 5 位」
+// （不管多久以前新增的都算）——時間窗口寫在這裡，跟 contactsAddedWithinHours 的呼叫端
+// 共用同一個數字，之後要調整窗口只要改這裡。
+const RECENTLY_ADDED_WINDOW_HOURS = 72;
 
 function greetingKey(hour: number): 'dashboard.greetingMorning' | 'dashboard.greetingAfternoon' | 'dashboard.greetingEvening' {
   if (hour < 12) return 'dashboard.greetingMorning';
@@ -33,9 +40,9 @@ function daysBefore(dateIso: string, today: string): number {
 }
 
 /**
- * 首頁摘要（見 spec.md §5.4、§11.3）：視覺重新設計後改成「AI 建議 Hero 卡 + 今日摘要
- * 2x2 統計格線 + 最近互動清單」，底下的資料來源跟 Phase 1 之前完全一樣，只是呈現方式
- * 從清單改成統計卡（見 GroupedSection 附近的討論：不重寫功能，只換皮）。
+ * 首頁摘要（見 spec.md §5.4、§11.3）：AI 建議 Hero 卡 + 今日摘要 2x2 統計格線 + 四個
+ * 對應的清單區塊。點統計卡會捲動到畫面下方對應的清單（見使用者要求）——四個清單維持
+ * Web 版「沒有資料就不顯示」原則，隱藏時對應的統計卡點了不會捲（沒有目標可捲）。
  */
 export function DashboardScreen() {
   const { t } = useTranslation();
@@ -51,6 +58,21 @@ export function DashboardScreen() {
   const allInteractions = useInteractionsStore((s) => s.all);
   const subscribeAllInteractions = useInteractionsStore((s) => s.subscribeAll);
 
+  const scrollRef = useRef<ScrollView>(null);
+  const sectionY = useRef<Partial<Record<StatKey, number>>>({});
+
+  function registerSectionY(key: StatKey) {
+    return (e: { nativeEvent: { layout: { y: number } } }) => {
+      sectionY.current[key] = e.nativeEvent.layout.y;
+    };
+  }
+
+  function scrollToSection(key: StatKey) {
+    const y = sectionY.current[key];
+    if (y === undefined) return; // 該清單目前沒有資料、沒有渲染出來，沒有目標可捲
+    scrollRef.current?.scrollTo({ y: Math.max(0, y - 16), animated: true });
+  }
+
   useEffect(() => {
     if (!uid) return;
     const unsubContacts = subscribeContacts(uid);
@@ -64,7 +86,7 @@ export function DashboardScreen() {
   const today = todayDateString();
   const dueContacts = sortByReminderDate(contacts.filter((c) => isReminderDue(c, today)));
   const birthdays = upcomingBirthdays(contacts, today);
-  const recent = recentContacts(contacts);
+  const recentlyAdded = contactsAddedWithinHours(contacts, Date.now(), RECENTLY_ADDED_WINDOW_HOURS);
   const recentInter = recentInteractions(allInteractions);
   const recentInteractionCount = allInteractions.filter((i) => {
     const days = daysBefore(today, i.date);
@@ -75,15 +97,17 @@ export function DashboardScreen() {
   const firstName = (displayName ?? email ?? '').split(/[\s@]/)[0];
   const hour = new Date().getHours();
 
-  const stats: Array<{ icon: SFSymbol; color: string; title: string; count: number; unit: string }> = [
+  const stats: Array<{ key: StatKey; icon: SFSymbol; color: string; title: string; count: number; unit: string }> = [
     {
+      key: 'recentlyAdded',
       icon: 'person.crop.circle.badge.plus',
       color: theme.colors.primary,
       title: t('dashboard.newContactsStat'),
-      count: recent.length,
-      unit: t('dashboard.peopleCount', { count: recent.length }),
+      count: recentlyAdded.length,
+      unit: t('dashboard.peopleCount', { count: recentlyAdded.length }),
     },
     {
+      key: 'recentInteractions',
       icon: 'bubble.left.and.bubble.right.fill',
       color: theme.colors.secondary,
       title: t('dashboard.recentInteractionsStat'),
@@ -91,6 +115,7 @@ export function DashboardScreen() {
       unit: t('dashboard.interactionCount', { count: recentInteractionCount }),
     },
     {
+      key: 'birthdays',
       icon: 'birthday.cake.fill',
       color: theme.colors.tertiary,
       title: t('dashboard.birthdaysStat'),
@@ -98,6 +123,7 @@ export function DashboardScreen() {
       unit: t('dashboard.birthdayCount', { count: birthdays.length }),
     },
     {
+      key: 'due',
       icon: 'star.fill',
       color: theme.colors.error,
       title: t('dashboard.dueStat'),
@@ -107,7 +133,7 @@ export function DashboardScreen() {
   ];
 
   return (
-    <ScrollView contentContainerStyle={[styles.container, { paddingBottom: tabBarHeight + 24 }]}>
+    <ScrollView ref={scrollRef} contentContainerStyle={[styles.container, { paddingBottom: tabBarHeight + 24 }]}>
       <View style={styles.headerRow}>
         <View style={styles.headerText}>
           <Text variant="headlineLarge">{t(greetingKey(hour), { name: firstName })}</Text>
@@ -125,8 +151,9 @@ export function DashboardScreen() {
       </Text>
       <View style={styles.statsGrid}>
         {stats.map((stat) => (
-          <View
-            key={stat.title}
+          <Pressable
+            key={stat.key}
+            onPress={() => scrollToSection(stat.key)}
             style={[styles.statCard, { backgroundColor: theme.colors.surface, borderRadius: theme.roundness }, CARD_SHADOW]}
           >
             <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
@@ -141,12 +168,12 @@ export function DashboardScreen() {
             <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
               {stat.unit}
             </Text>
-          </View>
+          </Pressable>
         ))}
       </View>
 
       {dueContacts.length > 0 && (
-        <View style={styles.section}>
+        <View style={styles.section} onLayout={registerSectionY('due')}>
           <Text variant="titleLarge">{t('reminders.title')}</Text>
           {dueContacts.map((c) => (
             <List.Item
@@ -159,8 +186,36 @@ export function DashboardScreen() {
         </View>
       )}
 
+      {recentlyAdded.length > 0 && (
+        <View style={styles.section} onLayout={registerSectionY('recentlyAdded')}>
+          <Text variant="titleLarge">{t('dashboard.recentContactsTitle')}</Text>
+          {recentlyAdded.map((c) => (
+            <List.Item
+              key={c.id}
+              title={c.name}
+              description={c.company}
+              left={() => <ContactAvatar photoUrl={c.photos?.[0]?.url} name={c.name} seed={c.id} size={36} />}
+            />
+          ))}
+        </View>
+      )}
+
+      {birthdays.length > 0 && (
+        <View style={styles.section} onLayout={registerSectionY('birthdays')}>
+          <Text variant="titleLarge">{t('dashboard.upcomingBirthdaysTitle')}</Text>
+          {birthdays.map(({ contact, daysUntil }) => (
+            <List.Item
+              key={contact.id}
+              title={contact.name}
+              description={daysUntil === 0 ? t('dashboard.birthdayToday') : t('dashboard.daysUntilBirthday', { days: daysUntil })}
+              left={() => <ContactAvatar photoUrl={contact.photos?.[0]?.url} name={contact.name} seed={contact.id} size={36} />}
+            />
+          ))}
+        </View>
+      )}
+
       {recentInter.length > 0 && (
-        <View style={styles.section}>
+        <View style={styles.section} onLayout={registerSectionY('recentInteractions')}>
           <View style={styles.sectionHeaderRow}>
             <Text variant="titleLarge">{t('dashboard.recentInteractionsTitle')}</Text>
             <Text variant="bodyMedium" style={{ color: theme.colors.primary }}>
@@ -182,7 +237,7 @@ export function DashboardScreen() {
         </View>
       )}
 
-      {dueContacts.length === 0 && birthdays.length === 0 && recent.length === 0 && recentInter.length === 0 && (
+      {dueContacts.length === 0 && birthdays.length === 0 && recentlyAdded.length === 0 && recentInter.length === 0 && (
         <Text style={[styles.empty, { color: theme.colors.onSurfaceVariant }]}>{t('dashboard.noReminders')}</Text>
       )}
     </ScrollView>

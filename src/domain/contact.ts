@@ -149,9 +149,17 @@ export function sortContacts(contacts: Contact[], sortBy: ContactSortBy): Contac
   return [...contacts].sort((a, b) => a.name.localeCompare(b.name));
 }
 
-/** 依建立時間新到舊排序，取前 limit 筆，供首頁「最近新增的聯絡人」使用。 */
-export function recentContacts(contacts: Contact[], limit = 5): Contact[] {
-  return [...contacts].sort((a, b) => b.createdAt - a.createdAt).slice(0, limit);
+/**
+ * 首頁「最近新增」的定義（見使用者確認）：建立時間落在過去 windowHours 小時內的聯絡人，
+ * 新到舊排序——不是「最新的 N 位」，是真的有時間窗口，超過窗口就不算「最近」，即使
+ * 剛好是清單裡最新的幾位。`createdAt` 是精確到毫秒的時間戳（見 applyContactDefaults），
+ * 用毫秒差直接比對，不用曆日字串（時區換算不精確，這裡不需要）。
+ */
+export function contactsAddedWithinHours(contacts: Contact[], nowMs: number, windowHours = 72): Contact[] {
+  const windowMs = windowHours * 60 * 60 * 1000;
+  return contacts
+    .filter((c) => nowMs - c.createdAt <= windowMs)
+    .sort((a, b) => b.createdAt - a.createdAt);
 }
 
 export interface UpcomingBirthday {
