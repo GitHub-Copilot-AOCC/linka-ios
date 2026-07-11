@@ -18,7 +18,7 @@ import { MAX_PHOTOS_PER_CONTACT } from '@domain/contact';
 import type { ContactPhoto } from '@domain/contact';
 import { uploadContactPhoto, removeContactPhoto } from '@data/contactsRepository';
 import { pickImage } from '@platform/filePicker';
-import { compressImage } from '@platform/imageCompression';
+import { compressImage, readImageAsBase64 } from '@platform/imageCompression';
 
 type Props = NativeStackScreenProps<ContactsStackParamList, 'ContactDetail'>;
 
@@ -154,8 +154,8 @@ export function ContactDetailScreen({ route, navigation }: Props) {
     setError(null);
     try {
       const compressedUri = await compressImage(picked.uri);
-      const blob = await (await fetch(compressedUri)).blob();
-      await uploadContactPhoto(uid!, contactId, blob, photos);
+      const base64Data = await readImageAsBase64(compressedUri);
+      await uploadContactPhoto(uid!, contactId, base64Data, photos);
     } catch (err) {
       setError((err as Error).message);
     } finally {

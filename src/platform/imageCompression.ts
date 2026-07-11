@@ -4,8 +4,7 @@ import type { CardBoundingBox } from '@domain/businessCard';
 
 /**
  * RN 實作：用 expo-image-manipulator 縮小圖片（見 spec.md §5.2、§8.2）。
- * 對應 Web 版的 Canvas 壓縮，介面回傳型別改成 RN 慣用的 uri 字串（而非 Blob），
- * 呼叫端（contactsRepository.uploadContactPhoto）之後上傳時再用 fetch(uri) 轉成 Blob。
+ * 對應 Web 版的 Canvas 壓縮，介面回傳型別改成 RN 慣用的 uri 字串。
  */
 export async function compressImage(uri: string, maxDimension = 1024, quality = 0.8): Promise<string> {
   const result = await ImageManipulator.manipulateAsync(uri, [{ resize: { width: maxDimension } }], {
@@ -13,6 +12,17 @@ export async function compressImage(uri: string, maxDimension = 1024, quality = 
     format: ImageManipulator.SaveFormat.JPEG,
   });
   return result.uri;
+}
+
+/**
+ * 讀取本機圖片檔案為 base64 字串，供上傳 Firebase Storage 用（見 contactsRepository.
+ * uploadContactPhoto）。不要用 fetch(uri).blob() 轉 Blob——React Native 這裡會直接拋出
+ * "Creating blobs from 'ArrayBuffer' and 'ArrayBufferView' are not supported"（見使用者
+ * 實測截圖），是已知的 RN Blob polyfill 限制；改用 expo-file-system 讀 base64、搭配
+ * Storage 的 uploadString(..., 'base64') 完全避開 Blob 建構這一步。
+ */
+export async function readImageAsBase64(uri: string): Promise<string> {
+  return FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
 }
 
 const PENDING_PHOTOS_DIR = `${FileSystem.documentDirectory}pending-photos/`;

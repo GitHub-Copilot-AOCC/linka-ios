@@ -13,7 +13,7 @@ import {
   getDocs,
   writeBatch,
 } from 'firebase/firestore';
-import { ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { ref as storageRef, uploadString, getDownloadURL, deleteObject } from 'firebase/storage';
 import { db, storage } from './firebase';
 import type { Contact, ContactPhoto, NewContactInput, ResearchEntry } from '@domain/contact';
 import { applyContactDefaults } from '@domain/contact';
@@ -121,6 +121,12 @@ export async function deleteContact(uid: string, contactId: string): Promise<voi
  * users/{uid}/contacts/{contactId}/photos/{photoId}.jpg），並把下載 URL 加進
  * Contact.photos 陣列。呼叫端負責先做 MAX_PHOTOS_PER_CONTACT 上限檢查。
  *
+ * 參數是 base64 字串，不是 Blob——React Native 這裡的 fetch(uri).blob() 會直接拋出
+ * "Creating blobs from 'ArrayBuffer' and 'ArrayBufferView' are not supported"（見使用者
+ * 實測截圖：照片上傳失敗，錯誤訊息就是這個），這是已知的 RN Blob polyfill 限制，不是
+ * Storage 權限或檔案本身的問題。改用 Storage 的 uploadString(..., 'base64') 完全避開
+ * Blob 建構這一步；呼叫端改用 @platform/imageCompression 的 readImageAsBase64(uri) 讀檔。
+ *
  * 回傳新增的這一筆 ContactPhoto——需要連續上傳多張照片時（例如名片辨識同時裁出大頭照
  * 跟名片全圖），呼叫端要拿這個回傳值累積下一次呼叫的 existingPhotos，不能每次都傳空
  * 陣列進來，否則後面的呼叫會覆蓋掉前一張，不是附加。
@@ -128,14 +134,14 @@ export async function deleteContact(uid: string, contactId: string): Promise<voi
 export async function uploadContactPhoto(
   uid: string,
   contactId: string,
-  blob: Blob,
+  base64Data: string,
   existingPhotos: ContactPhoto[]
 ): Promise<ContactPhoto> {
   if (!storage) throw new Error('Firebase Storage is not configured');
   const photoId = `${Date.now()}`;
   const path = `users/${uid}/contacts/${contactId}/photos/${photoId}.jpg`;
   const fileRef = storageRef(storage, path);
-  await uploadBytes(fileRef, blob, { contentType: 'image/jpeg' });
+  await uploadString(fileRef, base64Data, 'base64', { contentType: 'image/jpeg' });
   const url = await getDownloadURL(fileRef);
 
   const photo: ContactPhoto = { url, source: 'upload', addedAt: Date.now() };
