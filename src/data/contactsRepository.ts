@@ -13,7 +13,7 @@ import {
   getDocs,
   writeBatch,
 } from 'firebase/firestore';
-import { ref as storageRef, uploadString, getDownloadURL, deleteObject } from 'firebase/storage';
+import { ref as storageRef, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
 import { db, storage } from './firebase';
 import type { Contact, ContactPhoto, NewContactInput, ResearchEntry } from '@domain/contact';
 import { applyContactDefaults } from '@domain/contact';
@@ -121,11 +121,20 @@ export async function deleteContact(uid: string, contactId: string): Promise<voi
  * users/{uid}/contacts/{contactId}/photos/{photoId}.jpg），並把下載 URL 加進
  * Contact.photos 陣列。呼叫端負責先做 MAX_PHOTOS_PER_CONTACT 上限檢查。
  *
- * 參數是 base64 字串，不是 Blob——React Native 這裡的 fetch(uri).blob() 會直接拋出
- * "Creating blobs from 'ArrayBuffer' and 'ArrayBufferView' are not supported"（見使用者
- * 實測截圖：照片上傳失敗，錯誤訊息就是這個），這是已知的 RN Blob polyfill 限制，不是
- * Storage 權限或檔案本身的問題。改用 Storage 的 uploadString(..., 'base64') 完全避開
- * Blob 建構這一步；呼叫端改用 @platform/imageCompression 的 readImageAsBase64(uri) 讀檔。
+ * 排查記錄（見使用者兩次實測截圖，錯誤訊息完全相同："Creating blobs from 'ArrayBuffer'
+ * and 'ArrayBufferView' are not supported"）：一開始懷疑是 fetch(uri).blob() 的問題，
+ * 改成 base64+uploadString 之後問題依然存在——追進 @firebase/storage 原始碼才發現
+ * 真正的根因是 Firebase JS SDK 的 Storage 模組本身：`uploadBytes`／`uploadString`
+ * 預設都走「multipart」上傳策略，SDK 內部一律會把 metadata JSON 字串 + 檔案內容 +
+ * 收尾字串三段用 `new Blob([...])` 兜成一個請求主體，不管呼叫端原本傳的是 Blob、
+ * Uint8Array 還是 base64 字串都逃不掉這一步，而 React Native 的 Blob polyfill完全
+ * 不支援用 ArrayBuffer/ArrayBufferView 建構 Blob，於是不管怎麼包裝資料，最後都在 SDK
+ * 內部炸在同一行——這不是 Storage 權限、不是檔案本身、也不是快取被回收的問題。
+ *
+ * 真正解法：改用 `uploadBytesResumable`（resumable 上傳協定）——這條路徑用多次 POST
+ * 分段傳輸位元組，追進原始碼確認過完全不會呼叫 `new Blob(...)`；只要餵給它的是
+ * Uint8Array（不是原生 Blob 物件）即可。呼叫端改用 @platform/imageCompression 的
+ * readImageAsBytes(uri) 讀檔（Expo 新版 File API 的 arrayBuffer()，不透過 base64）。
  *
  * 回傳新增的這一筆 ContactPhoto——需要連續上傳多張照片時（例如名片辨識同時裁出大頭照
  * 跟名片全圖），呼叫端要拿這個回傳值累積下一次呼叫的 existingPhotos，不能每次都傳空
@@ -134,14 +143,14 @@ export async function deleteContact(uid: string, contactId: string): Promise<voi
 export async function uploadContactPhoto(
   uid: string,
   contactId: string,
-  base64Data: string,
+  bytes: Uint8Array,
   existingPhotos: ContactPhoto[]
 ): Promise<ContactPhoto> {
   if (!storage) throw new Error('Firebase Storage is not configured');
   const photoId = `${Date.now()}`;
   const path = `users/${uid}/contacts/${contactId}/photos/${photoId}.jpg`;
   const fileRef = storageRef(storage, path);
-  await uploadString(fileRef, base64Data, 'base64', { contentType: 'image/jpeg' });
+  await uploadBytesResumable(fileRef, bytes, { contentType: 'image/jpeg' });
   const url = await getDownloadURL(fileRef);
 
   const photo: ContactPhoto = { url, source: 'upload', addedAt: Date.now() };

@@ -13,7 +13,7 @@ import { useAuthStore } from '@ui/store/authStore';
 import { useTagsStore } from '@ui/store/tagsStore';
 import { uploadContactPhoto } from '@data/contactsRepository';
 import { pickImage } from '@platform/filePicker';
-import { compressImage, persistPickedImage, cleanupPendingImage, readImageAsBase64 } from '@platform/imageCompression';
+import { compressImage, persistPickedImage, cleanupPendingImage, readImageAsBytes } from '@platform/imageCompression';
 import { MAX_PHOTOS_PER_CONTACT } from '@domain/contact';
 
 type Props = NativeStackScreenProps<ContactsStackParamList, 'AddContact'>;
@@ -97,8 +97,8 @@ export function AddContactScreen({ navigation, route }: Props) {
       try {
         let uploaded: Awaited<ReturnType<typeof uploadContactPhoto>>[] = [];
         for (const uri of photoUris) {
-          const base64Data = await readImageAsBase64(uri);
-          const photo = await uploadContactPhoto(uid, result.id, base64Data, uploaded);
+          const bytes = await readImageAsBytes(uri);
+          const photo = await uploadContactPhoto(uid, result.id, bytes, uploaded);
           uploaded = [...uploaded, photo];
         }
         await Promise.all(photoUris.map((uri) => cleanupPendingImage(uri)));

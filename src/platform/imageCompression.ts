@@ -1,5 +1,6 @@
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as FileSystem from 'expo-file-system/legacy';
+import { File } from 'expo-file-system';
 import type { CardBoundingBox } from '@domain/businessCard';
 
 /**
@@ -15,14 +16,28 @@ export async function compressImage(uri: string, maxDimension = 1024, quality = 
 }
 
 /**
- * 讀取本機圖片檔案為 base64 字串，供上傳 Firebase Storage 用（見 contactsRepository.
- * uploadContactPhoto）。不要用 fetch(uri).blob() 轉 Blob——React Native 這裡會直接拋出
- * "Creating blobs from 'ArrayBuffer' and 'ArrayBufferView' are not supported"（見使用者
- * 實測截圖），是已知的 RN Blob polyfill 限制；改用 expo-file-system 讀 base64、搭配
- * Storage 的 uploadString(..., 'base64') 完全避開 Blob 建構這一步。
+ * 讀取本機圖片檔案為 Uint8Array，供上傳 Firebase Storage 用（見 contactsRepository.
+ * uploadContactPhoto）。
+ *
+ * 排查記錄（見使用者兩次實測截圖，錯誤訊息完全相同）：一開始改成 fetch(uri).blob()
+ * →base64→uploadString(...) 都沒解決問題，因為真正的根因不是「怎麼把 uri 讀成資料」，
+ * 而是 Firebase JS SDK 的 Storage 模組本身——不管呼叫端傳 Blob、Uint8Array 還是 base64
+ * 字串，`uploadBytes`/`uploadString` 預設走的「multipart」上傳策略，內部一律會把
+ * metadata JSON 字串 + 檔案內容 + 收尾字串三段用 `new Blob([...])` 兜成一個請求主體
+ * （見 @firebase/storage 原始碼 getBlob$1／FbsBlob.getBlob），而 React Native 的 Blob
+ * polyfill 完全不支援用 ArrayBuffer/ArrayBufferView 建構 Blob，所以無論怎麼包裝資料，
+ * 最後都會在 SDK 內部炸在同一行。
+ *
+ * 真正的解法：改用 `uploadBytesResumable`（resumable 上傳協定）——這條路徑用多次
+ * POST 分段傳輸位元組，不會把資料跟字串兜成一個 Blob，只要餵給它的是 Uint8Array
+ * （不是原生 Blob 物件），就完全不會碰到 `new Blob(...)` 這一步。用 expo-file-system
+ * 新版 File API 的 `arrayBuffer()` 直接讀出位元組，不透過 base64 文字編碼再解碼，
+ * 效能也更好。
  */
-export async function readImageAsBase64(uri: string): Promise<string> {
-  return FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
+export async function readImageAsBytes(uri: string): Promise<Uint8Array> {
+  const file = new File(uri);
+  const buffer = await file.arrayBuffer();
+  return new Uint8Array(buffer);
 }
 
 const PENDING_PHOTOS_DIR = `${FileSystem.documentDirectory}pending-photos/`;
