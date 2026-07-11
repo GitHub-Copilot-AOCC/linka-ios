@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useState } from 'react';
-import { ScrollView, View, StyleSheet } from 'react-native';
+import { ScrollView, View, StyleSheet, Alert } from 'react-native';
 import { Avatar, ActivityIndicator, Button, HelperText, IconButton } from 'react-native-paper';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -13,7 +13,7 @@ import { useAuthStore } from '@ui/store/authStore';
 import { useTagsStore } from '@ui/store/tagsStore';
 import { uploadContactPhoto } from '@data/contactsRepository';
 import { pickImage } from '@platform/filePicker';
-import { compressImage } from '@platform/imageCompression';
+import { compressImage, persistPickedImage, cleanupPendingImage } from '@platform/imageCompression';
 import { MAX_PHOTOS_PER_CONTACT } from '@domain/contact';
 
 type Props = NativeStackScreenProps<ContactsStackParamList, 'AddContact'>;
@@ -56,7 +56,11 @@ export function AddContactScreen({ navigation, route }: Props) {
     setError(null);
     try {
       const compressedUri = await compressImage(picked.uri);
-      setPhotoUris((prev) => [...prev, compressedUri]);
+      // 存進 documentDirectory 而不是直接用 compressImage 回傳的 cache 檔案 uri——使用者
+      // 選完照片後可能還要填一陣子表單才按儲存，cache 檔案在這段等待期間有被系統回收的風險
+      // （見使用者回報：名片掃描的照片完全沒有存進聯絡人，同一個根因）。
+      const persistedUri = await persistPickedImage(compressedUri);
+      setPhotoUris((prev) => [...prev, persistedUri]);
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -88,7 +92,8 @@ export function AddContactScreen({ navigation, route }: Props) {
     if (result.ok && result.id && photoUris.length > 0) {
       // 依序上傳、每次都把前一張的回傳值累積進 existingPhotos，順序才會對（名片掃描帶來的
       // 大頭照排最前面），不能每次都傳空陣列，否則後面上傳的會覆蓋掉前一張。上傳失敗不影響
-      // 聯絡人已經建立成功這件事。
+      // 聯絡人已經建立成功這件事，但要讓使用者看得到失敗訊息（見使用者回報：之前失敗時完全
+      // 沒有任何提示，只是靜默地什麼都沒發生，難以判斷是不是真的有問題)。
       try {
         let uploaded: Awaited<ReturnType<typeof uploadContactPhoto>>[] = [];
         for (const uri of photoUris) {
@@ -96,8 +101,10 @@ export function AddContactScreen({ navigation, route }: Props) {
           const photo = await uploadContactPhoto(uid, result.id, blob, uploaded);
           uploaded = [...uploaded, photo];
         }
+        await Promise.all(photoUris.map((uri) => cleanupPendingImage(uri)));
       } catch (err) {
         console.error('[AddContactScreen] uploadContactPhoto failed:', err);
+        Alert.alert(t('businessCard.photoUploadFailedTitle'), t('businessCard.photoUploadFailedMessage'));
       }
     }
     setSaving(false);

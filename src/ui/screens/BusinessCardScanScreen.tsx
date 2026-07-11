@@ -7,7 +7,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { ContactsStackParamList } from '@ui/navigation/ContactsStackParamList';
 import { scanBusinessCard, GeminiServiceError } from '@services/geminiService';
 import { pickImage } from '@platform/filePicker';
-import { compressImage, cropToBoundingBox } from '@platform/imageCompression';
+import { compressImage, cropToBoundingBox, persistPickedImage } from '@platform/imageCompression';
 
 type Props = NativeStackScreenProps<ContactsStackParamList, 'BusinessCardScan'>;
 
@@ -54,7 +54,16 @@ export function BusinessCardScanScreen({ navigation }: Props) {
       const personPhotoUri = result.personPhotoBoundingBox
         ? await cropToBoundingBox(compressedUri, result.personPhotoBoundingBox).catch(() => null)
         : null;
-      const pendingPhotoUris = personPhotoUri ? [personPhotoUri, cardPhotoUri] : [cardPhotoUri];
+
+      // compressImage/cropToBoundingBox 的輸出預設落在 cacheDirectory，從這裡導到「新增
+      // 聯絡人」表單、使用者填完欄位才按儲存，中間可能經過數十秒到數分鐘，cache 檔案有被
+      // 系統回收的風險（見使用者回報：存檔後照片集完全沒有照片）。複製到 documentDirectory
+      // 確保存檔那一刻檔案還在。
+      const persistedCardPhotoUri = await persistPickedImage(cardPhotoUri);
+      const persistedPersonPhotoUri = personPhotoUri ? await persistPickedImage(personPhotoUri) : null;
+      const pendingPhotoUris = persistedPersonPhotoUri
+        ? [persistedPersonPhotoUri, persistedCardPhotoUri]
+        : [persistedCardPhotoUri];
 
       // 用 replace 而不是 navigate：掃描這一頁的任務結束了，換成新增聯絡人表單，
       // 從那邊按返回應該直接回到聯絡人列表，不是回到這個已經用不到的掃描畫面。
